@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Movie {
+  id           Int        @id @default(autoincrement())
+  tmdbId       Int        @unique
+  title        String
+  overview     String?
+  posterPath   String?
+  backdropPath String?
+  releaseDate  String?
+  runtime      Int?
+  voteAverage  Float?
+  genres       String     // JSON array string (SQLite) → Json (Postgres)
+  cast         String?    // JSON array, top 10 cast members
+  directors    String?    // JSON array
+  mediaType    String     @default("movie") // "movie" | "tv"
+  watched      Boolean    @default(true)
+  watchedDate  DateTime?
+  userRating   Int?       // 1-5 stars
+  isFavorite   Boolean    @default(false)
+  userNotes    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tvSeasons    TvSeason[]
+}
+
+model TvSeason {
+  id              Int     @id @default(autoincrement())
+  movieId         Int
+  movie           Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  seasonNumber    Int
+  episodeCount    Int?
+  watchedEpisodes Int     @default(0)
+  airDate         String?
+  overview        String?
+
+  @@unique([movieId, seasonNumber])
+}
+
+model WatchlistItem {
+  id            Int      @id @default(autoincrement())
+  tmdbId        Int      @unique
+  title         String
+  mediaType     String   @default("movie")
+  posterPath    String?
+  overview      String?
+  releaseDate   String?
+  runtime       Int?
+  genres        String?
+  streamingInfo String?  // JSON: {service, url}[]
+  priority      Int      @default(0)
+  addedAt       DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ImportLog {
+  id         Int      @id @default(autoincrement())
+  rawInput   String
+  totalLines Int
+  matched    Int
+  unmatched  Int
+  skipped    Int
+  results    String   // JSON per-row outcomes
+  createdAt  DateTime @default(now())
+}
