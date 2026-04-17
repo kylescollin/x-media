@@ -41,3 +41,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Google OAuth credentials (never commit these)
+credentials.json
+scripts/token.json
+
+# Playwright browser session (contains Google login cookies)
+scripts/.browser-session/

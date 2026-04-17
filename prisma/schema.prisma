@@ -59,14 +59,3 @@ model WatchlistItem {
   addedAt       DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
-
-model ImportLog {
-  id         Int      @id @default(autoincrement())
-  rawInput   String
-  totalLines Int
-  matched    Int
-  unmatched  Int
-  skipped    Int
-  results    String   // JSON per-row outcomes
-  createdAt  DateTime @default(now())
-}
