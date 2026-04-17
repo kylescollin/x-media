@@ -128,7 +128,7 @@ interface Revision {
 }
 
 async function getAllRevisions(
-  auth: ReturnType<typeof google.auth.OAuth2.prototype.constructor> extends never ? never : Awaited<ReturnType<typeof getAuthClient>>,
+  auth: Awaited<ReturnType<typeof getAuthClient>>,
   fileId: string
 ): Promise<Revision[]> {
   const drive = google.drive({ version: "v3", auth: auth as any });
