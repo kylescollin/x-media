@@ -11,8 +11,8 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const movie = await getMovie(Number(id));
-  if (!movie) return { title: "Not found — x-media" };
-  return { title: `${movie.title} — x-media` };
+  if (!movie) return { title: "Not found — Kyle's Media" };
+  return { title: `${movie.title} — Kyle's Media` };
 }
 
 export default async function MovieDetailPage({ params }: Props) {

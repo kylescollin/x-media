@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "x-media",
-  description: "Kyle & Natalie's media tracker",
+  title: "Kyle's Media",
+  description: "Kyle's media tracker",
 };
 
 export default function RootLayout({

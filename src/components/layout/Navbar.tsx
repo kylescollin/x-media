@@ -19,7 +19,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/library" className="flex items-center gap-2 shrink-0">
           <span className="text-base font-semibold tracking-tight text-white">
-            x<span className="text-amber-400">·</span>media
+            Kyle<span className="text-amber-400">'</span>s Media
           </span>
         </Link>
 

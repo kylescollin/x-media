@@ -1,6 +1,6 @@
 import MovieGrid from "@/components/library/MovieGrid";
 
-export const metadata = { title: "Library — x-media" };
+export const metadata = { title: "Library — Kyle's Media" };
 
 export default function LibraryPage() {
   return (
