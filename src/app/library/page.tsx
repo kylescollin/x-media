@@ -4,10 +4,9 @@ export const metadata = { title: "Library — Kyle's Media" };
 
 export default function LibraryPage() {
   return (
-    <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 py-6">
+    <div className="px-6 sm:px-10 lg:px-16 py-8 sm:py-10">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Library</h1>
-        <p className="text-sm text-white/35 mt-1">Everything we&apos;ve watched</p>
+        <h1 className="text-4xl font-bold tracking-tight text-white">Library</h1>
       </div>
       <MovieGrid />
     </div>

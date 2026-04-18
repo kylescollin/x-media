@@ -38,13 +38,13 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
     <div className="flex flex-col bg-[oklch(0.12_0_0)]">
 
       {/* ── Cinematic backdrop ───────────────────────────────────────── */}
-      <div className="relative h-52 sm:h-64 w-full overflow-hidden bg-[oklch(0.09_0_0)] shrink-0">
+      <div className="relative h-52 sm:h-96 w-full overflow-hidden bg-[oklch(0.09_0_0)] shrink-0">
         {movie.backdropPath ? (
           <Image
             src={tmdbImage(movie.backdropPath, "original")}
             alt=""
             fill
-            sizes="(max-width: 768px) 100vw, 768px"
+            sizes="(max-width: 768px) 100vw, 1024px"
             className="object-cover object-top"
             priority
           />
@@ -109,24 +109,24 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
       </div>
 
       {/* ── Poster + title row ───────────────────────────────────────── */}
-      <div className="flex gap-4 px-5 sm:px-6 -mt-14 sm:-mt-16 relative z-10">
+      <div className="flex gap-4 px-5 sm:px-6 -mt-14 sm:-mt-20 relative z-10">
         {/* Poster — floats up from bottom of backdrop */}
-        <div className="relative shrink-0 h-28 w-[76px] sm:h-36 sm:w-24 rounded-lg overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10 bg-[oklch(0.09_0_0)]">
+        <div className="relative shrink-0 h-28 w-[76px] sm:h-52 sm:w-[138px] rounded-lg overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10 bg-[oklch(0.09_0_0)]">
           <Image
             src={tmdbImage(movie.posterPath, "w342")}
             alt={movie.title}
             fill
-            sizes="96px"
+            sizes="138px"
             className="object-cover"
           />
         </div>
 
         {/* Title + meta — sits bottom-aligned with poster */}
         <div className="flex flex-col justify-end pb-1 min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight line-clamp-2">
             {movie.title}
           </h2>
-          <div className="flex items-center gap-1.5 flex-wrap mt-1.5 text-xs text-white/45">
+          <div className="flex items-center gap-1.5 flex-wrap mt-2 text-sm text-white/45">
             {year && <span>{year}</span>}
             {runtime && <><span>·</span><span>{runtime}</span></>}
             {movie.voteAverage && (
@@ -134,7 +134,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
             )}
             <Badge
               variant="outline"
-              className="capitalize text-[10px] py-0 px-1.5 border-white/15 text-white/40 ml-0.5"
+              className="capitalize text-xs py-0.5 px-2 border-white/15 text-white/40 ml-0.5"
             >
               {movie.mediaType}
             </Badge>
@@ -166,7 +166,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
             {movie.genres.map((g) => (
               <span
                 key={g.id}
-                className="inline-flex text-[11px] px-2 py-0.5 rounded-full bg-white/8 text-white/55 border border-white/8"
+                className="inline-flex text-xs px-2.5 py-1 rounded-full bg-white/8 text-white/55 border border-white/8"
               >
                 {g.name}
               </span>
@@ -179,16 +179,16 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
       <div className="mx-5 sm:mx-6 mt-4 h-px bg-white/6" />
 
       {/* ── Tabs ─────────────────────────────────────────────────────── */}
-      <Tabs defaultValue="overview" className="px-5 sm:px-6 pt-1 pb-6">
+      <Tabs defaultValue="overview" className="px-5 sm:px-6 pt-2 pb-8">
         <TabsList className="mb-4 bg-transparent gap-1 -ml-1">
-          <TabsTrigger value="overview" className="text-xs data-active:text-white text-white/40 px-2 py-1">
+          <TabsTrigger value="overview" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
             Overview
           </TabsTrigger>
-          <TabsTrigger value="cast" className="text-xs data-active:text-white text-white/40 px-2 py-1">
+          <TabsTrigger value="cast" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
             Cast
           </TabsTrigger>
           {movie.mediaType === "tv" && (
-            <TabsTrigger value="seasons" className="text-xs data-active:text-white text-white/40 px-2 py-1">
+            <TabsTrigger value="seasons" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
               Seasons
             </TabsTrigger>
           )}

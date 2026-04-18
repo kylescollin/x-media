@@ -16,10 +16,10 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-screen-2xl items-center gap-8 px-4 sm:px-6 h-16">
+      <nav className="flex items-center gap-8 px-6 sm:px-10 lg:px-16 h-20">
         {/* Logo */}
         <Link href="/library" className="flex items-center gap-2 shrink-0">
-          <span className="text-base font-semibold tracking-tight text-white">
+          <span className="text-xl font-semibold tracking-tight text-white">
             Kyle<span className="text-amber-400">'</span>s Media
           </span>
         </Link>

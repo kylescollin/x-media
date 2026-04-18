@@ -29,7 +29,7 @@ export default function MovieDetailModal({ movie, onClose }: MovieDetailModalPro
         {/* Modal popup */}
         <Dialog.Popup
           className="fixed top-1/2 left-1/2 z-50
-            w-full max-w-[calc(100%-2rem)] sm:max-w-2xl
+            w-full max-w-[calc(100%-2rem)] sm:max-w-4xl
             -translate-x-1/2 -translate-y-1/2
             rounded-2xl overflow-hidden outline-none
             ring-1 ring-white/8
