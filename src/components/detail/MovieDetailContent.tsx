@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, MoreHorizontal } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import CastList from "./CastList";
 import SeasonTracker from "./SeasonTracker";
 import FavoriteToggle from "@/components/library/FavoriteToggle";
 import WatchedDateInput from "./WatchedDateInput";
+import RematchPanel from "@/components/validate/RematchPanel";
 import type { Movie } from "@/types";
 
 interface MovieDetailContentProps {
@@ -18,6 +20,7 @@ interface MovieDetailContentProps {
 }
 
 export default function MovieDetailContent({ movie, onClose }: MovieDetailContentProps) {
+  const [rematchOpen, setRematchOpen] = useState(false);
   const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null;
   const runtime = movie.runtime
     ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
@@ -55,16 +58,25 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
         {/* Gradient: transparent → modal bg on the sides */}
         <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.12_0_0)]/0 to-transparent" />
 
-        {/* Close button */}
-        {onClose && (
+        {/* Top-right buttons */}
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
           <button
-            onClick={onClose}
-            className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/70 transition-colors duration-150"
-            aria-label="Close"
+            onClick={(e) => { e.stopPropagation(); setRematchOpen(true); }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/50 hover:text-white/90 hover:bg-black/70 transition-colors duration-150"
+            aria-label="Replace movie"
           >
-            <X className="h-4 w-4" />
+            <MoreHorizontal className="h-4 w-4" />
           </button>
-        )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/70 transition-colors duration-150"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Poster + title row ───────────────────────────────────────── */}
@@ -185,6 +197,12 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
           </TabsContent>
         )}
       </Tabs>
+      <RematchPanel
+        movie={movie}
+        open={rematchOpen}
+        onClose={() => setRematchOpen(false)}
+        onRematched={() => setRematchOpen(false)}
+      />
     </div>
   );
 }
