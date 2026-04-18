@@ -12,13 +12,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
     const body = await request.json();
-    const { userRating, isFavorite, userNotes, watchedDate } = body;
+    const { userRating, isFavorite, userNotes, watchedDate, validated } = body;
 
     const movie = await updateMovie(Number(id), {
       ...(userRating !== undefined && { userRating }),
       ...(isFavorite !== undefined && { isFavorite }),
       ...(userNotes !== undefined && { userNotes }),
       ...(watchedDate !== undefined && { watchedDate: watchedDate ? new Date(watchedDate) : null }),
+      ...(validated !== undefined && { validated }),
     });
 
     return NextResponse.json(movie);

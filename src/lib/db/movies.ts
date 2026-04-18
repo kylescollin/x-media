@@ -109,6 +109,7 @@ export interface UpdateMovieInput {
   isFavorite?: boolean;
   userNotes?: string | null;
   watchedDate?: Date | null;
+  validated?: boolean;
 }
 
 export async function updateMovie(id: number, data: UpdateMovieInput): Promise<Movie> {
@@ -122,4 +123,42 @@ export async function updateMovie(id: number, data: UpdateMovieInput): Promise<M
 
 export async function deleteMovie(id: number): Promise<void> {
   await prisma.movie.delete({ where: { id } });
+}
+
+export interface RematchMovieInput {
+  tmdbId: number;
+  title: string;
+  overview?: string | null;
+  posterPath?: string | null;
+  backdropPath?: string | null;
+  releaseDate?: string | null;
+  runtime?: number | null;
+  voteAverage?: number | null;
+  genres: string;
+  cast?: string | null;
+  directors?: string | null;
+  mediaType: string;
+}
+
+export async function rematchMovie(id: number, data: RematchMovieInput): Promise<Movie> {
+  const row = await prisma.movie.update({
+    where: { id },
+    data: {
+      tmdbId: data.tmdbId,
+      title: data.title,
+      overview: data.overview,
+      posterPath: data.posterPath,
+      backdropPath: data.backdropPath,
+      releaseDate: data.releaseDate,
+      runtime: data.runtime,
+      voteAverage: data.voteAverage,
+      genres: data.genres,
+      cast: data.cast,
+      directors: data.directors,
+      mediaType: data.mediaType,
+      validated: true,
+    },
+    include: { tvSeasons: true },
+  });
+  return deserializeMovie(row);
 }

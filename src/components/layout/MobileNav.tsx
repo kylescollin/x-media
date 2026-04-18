@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film, List } from "lucide-react";
+import { Film, List, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/library", label: "Library", icon: Film },
   { href: "/watchlist", label: "Watchlist", icon: List },
+  { href: "/validate", label: "Validate", icon: ShieldCheck },
 ];
 
 export default function MobileNav() {

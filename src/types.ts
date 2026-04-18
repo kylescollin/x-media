@@ -37,6 +37,7 @@ export interface Movie {
   userRating: number | null;
   isFavorite: boolean;
   userNotes: string | null;
+  validated: boolean;
   createdAt: string;
   updatedAt: string;
   tvSeasons?: TvSeason[];

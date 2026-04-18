@@ -25,6 +25,7 @@ export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): 
     userRating: raw.userRating,
     isFavorite: raw.isFavorite,
     userNotes: raw.userNotes,
+    validated: raw.validated,
     createdAt: raw.createdAt.toISOString(),
     updatedAt: raw.updatedAt.toISOString(),
     tvSeasons: raw.tvSeasons as Movie["tvSeasons"],
