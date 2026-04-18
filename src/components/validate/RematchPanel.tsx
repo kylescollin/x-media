@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Search, Loader2 } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTmdbSearch } from "@/hooks/useTmdbSearch";
 import { tmdbImage } from "@/lib/tmdb";
 import type { Movie, TmdbSearchResult } from "@/types";
@@ -18,10 +19,13 @@ interface RematchPanelProps {
 export default function RematchPanel({ movie, open, onClose, onRematched }: RematchPanelProps) {
   const [query, setQuery] = useState(movie.title);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { results, isLoading } = useTmdbSearch(query, "both");
+  const queryClient = useQueryClient();
 
   async function handleSelect(result: TmdbSearchResult) {
     setLoading(true);
+    setError(null);
     try {
       const mediaType = result.media_type ?? "movie";
       const res = await fetch(`/api/movies/${movie.id}/rematch`, {
@@ -29,8 +33,14 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tmdbId: result.id, mediaType }),
       });
-      if (!res.ok) throw new Error("Rematch failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Rematch failed");
+      }
+      await queryClient.invalidateQueries({ queryKey: ["movies"] });
       onRematched();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -76,6 +86,11 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
 
           {/* Results */}
           <div className="overflow-y-auto flex-1 py-2">
+            {error && (
+              <p className="mx-5 mt-3 mb-1 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+                {error}
+              </p>
+            )}
             {results.length === 0 && !isLoading && query.trim().length >= 2 && (
               <p className="px-5 py-6 text-sm text-white/35 text-center">No results found.</p>
             )}
