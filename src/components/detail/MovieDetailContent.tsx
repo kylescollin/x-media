@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, MoreHorizontal } from "lucide-react";
+import { X, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
+import { Menu } from "@base-ui/react";
 import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,7 @@ import SeasonTracker from "./SeasonTracker";
 import FavoriteToggle from "@/components/library/FavoriteToggle";
 import WatchedDateInput from "./WatchedDateInput";
 import RematchPanel from "@/components/validate/RematchPanel";
+import { useDeleteMovie } from "@/hooks/useMovies";
 import type { Movie } from "@/types";
 
 interface MovieDetailContentProps {
@@ -21,6 +23,12 @@ interface MovieDetailContentProps {
 
 export default function MovieDetailContent({ movie, onClose }: MovieDetailContentProps) {
   const [rematchOpen, setRematchOpen] = useState(false);
+  const { mutate: deleteMovie } = useDeleteMovie();
+
+  function handleDelete() {
+    deleteMovie(movie.id);
+    onClose?.();
+  }
   const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null;
   const runtime = movie.runtime
     ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
@@ -60,13 +68,34 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
 
         {/* Top-right buttons */}
         <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-          <button
-            onClick={(e) => { e.stopPropagation(); setRematchOpen(true); }}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/50 hover:text-white/90 hover:bg-black/70 transition-colors duration-150"
-            aria-label="Replace movie"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <Menu.Root>
+            <Menu.Trigger
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/50 hover:text-white/90 hover:bg-black/70 transition-colors duration-150"
+              aria-label="Movie options"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner side="bottom" align="end" sideOffset={6}>
+                <Menu.Popup className="z-50 min-w-[160px] rounded-lg border border-white/10 bg-[oklch(0.18_0_0)] py-1 shadow-xl shadow-black/60 outline-none">
+                  <Menu.Item
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/8 cursor-pointer transition-colors duration-100 outline-none"
+                    onClick={() => setRematchOpen(true)}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Reconnect movie
+                  </Menu.Item>
+                  <Menu.Item
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-red-400/80 hover:text-red-400 hover:bg-white/8 cursor-pointer transition-colors duration-100 outline-none"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete from library
+                  </Menu.Item>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
           {onClose && (
             <button
               onClick={onClose}

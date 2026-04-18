@@ -14,6 +14,29 @@ export function useMovies() {
   });
 }
 
+export function useDeleteMovie() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/movies/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete movie");
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["movies"] });
+      const prev = queryClient.getQueryData<Movie[]>(["movies"]);
+      queryClient.setQueryData<Movie[]>(["movies"], (old) => old?.filter((m) => m.id !== id));
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["movies"], ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["movies"] });
+    },
+  });
+}
+
 export function useUpdateMovie() {
   const queryClient = useQueryClient();
 
