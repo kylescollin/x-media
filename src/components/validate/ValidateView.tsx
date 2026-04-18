@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle, ShieldCheck, XCircle, ArrowRight, Loader2 } from "lucide-react";
 import MovieDetailContent from "@/components/detail/MovieDetailContent";
 import RematchPanel from "./RematchPanel";
-import type { Movie } from "@/types";
+import { useMovies, useUpdateMovie } from "@/hooks/useMovies";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -16,36 +16,28 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function ValidateView() {
-  const [allMovies, setAllMovies] = useState<Movie[]>([]);
-  const [fetchError, setFetchError] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const { data: allMovies, isLoading, isError } = useMovies();
+  const { mutateAsync: updateMovie } = useUpdateMovie();
 
-  // Queue is a shuffled array of unvalidated movie ids
+  // Queue is a shuffled array of unvalidated movie ids — initialized once from first fetch
   const [queue, setQueue] = useState<number[]>([]);
   const [validatedCount, setValidatedCount] = useState(0);
+  const initialized = useRef(false);
   const [confirming, setConfirming] = useState(false);
   const [rematchOpen, setRematchOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/movies")
-      .then((r) => r.json())
-      .then((data: Movie[]) => {
-        setAllMovies(data);
-        const unvalidated = data.filter((m) => !m.validated).map((m) => m.id);
-        setQueue(shuffle(unvalidated));
-        setValidatedCount(data.filter((m) => m.validated).length);
-      })
-      .catch(() => setFetchError(true))
-      .finally(() => setFetching(false));
-  }, []);
+    if (!allMovies || initialized.current) return;
+    initialized.current = true;
+    const unvalidated = allMovies.filter((m) => !m.validated).map((m) => m.id);
+    setQueue(shuffle(unvalidated));
+    setValidatedCount(allMovies.filter((m) => m.validated).length);
+  }, [allMovies]);
 
-  const movieMap = useMemo(
-    () => new Map(allMovies.map((m) => [m.id, m])),
-    [allMovies]
-  );
-
+  // Always read current movie from React Query cache so rating/favorite updates are live
+  const movieMap = new Map((allMovies ?? []).map((m) => [m.id, m]));
   const currentId = queue[0] ?? null;
-  const current = currentId !== null ? movieMap.get(currentId) ?? null : null;
+  const current = currentId !== null ? (movieMap.get(currentId) ?? null) : null;
   const totalCount = validatedCount + queue.length;
 
   function advanceQueue(removeFirst = true) {
@@ -56,11 +48,7 @@ export default function ValidateView() {
     if (!current) return;
     setConfirming(true);
     try {
-      await fetch(`/api/movies/${current.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ validated: true }),
-      });
+      await updateMovie({ id: current.id, data: { validated: true } });
       setValidatedCount((c) => c + 1);
       advanceQueue(true);
     } finally {
@@ -78,7 +66,7 @@ export default function ValidateView() {
     advanceQueue(true);
   }
 
-  if (fetching) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60dvh]">
         <Loader2 className="h-6 w-6 text-white/30 animate-spin" />
@@ -86,7 +74,7 @@ export default function ValidateView() {
     );
   }
 
-  if (fetchError) {
+  if (isError) {
     return (
       <div className="flex items-center justify-center min-h-[60dvh]">
         <p className="text-sm text-white/40">Failed to load movies.</p>
