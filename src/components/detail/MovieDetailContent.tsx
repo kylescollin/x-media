@@ -76,8 +76,8 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
               <MoreHorizontal className="h-4 w-4" />
             </Menu.Trigger>
             <Menu.Portal>
-              <Menu.Positioner side="bottom" align="end" sideOffset={6}>
-                <Menu.Popup className="z-50 min-w-[160px] rounded-lg border border-white/10 bg-[oklch(0.18_0_0)] py-1 shadow-xl shadow-black/60 outline-none">
+              <Menu.Positioner side="bottom" align="end" sideOffset={6} className="isolate z-[70]">
+                <Menu.Popup className="min-w-[160px] rounded-lg border border-white/10 bg-[oklch(0.18_0_0)] py-1 shadow-xl shadow-black/60 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 duration-100 origin-(--transform-origin)">
                   <Menu.Item
                     className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/8 cursor-pointer transition-colors duration-100 outline-none"
                     onClick={() => setRematchOpen(true)}
