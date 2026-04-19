@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
+import { X, MoreHorizontal, Trash2, RefreshCw, CircleCheck, CircleX } from "lucide-react";
 import { Menu } from "@base-ui/react";
 import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import SeasonTracker from "./SeasonTracker";
 import FavoriteToggle from "@/components/library/FavoriteToggle";
 import WatchedDateInput from "./WatchedDateInput";
 import RematchPanel from "@/components/validate/RematchPanel";
-import { useDeleteMovie } from "@/hooks/useMovies";
+import { useDeleteMovie, useUpdateMovie } from "@/hooks/useMovies";
 import type { Movie } from "@/types";
 
 interface MovieDetailContentProps {
@@ -24,6 +24,7 @@ interface MovieDetailContentProps {
 export default function MovieDetailContent({ movie, onClose }: MovieDetailContentProps) {
   const [rematchOpen, setRematchOpen] = useState(false);
   const { mutate: deleteMovie } = useDeleteMovie();
+  const { mutate: updateMovie } = useUpdateMovie();
 
   function handleDelete() {
     deleteMovie(movie.id);
@@ -159,6 +160,18 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
             <span className="text-xs text-white/35 font-medium tracking-wide uppercase">Watched</span>
             <WatchedDateInput movieId={movie.id} watchedDate={movie.watchedDate} />
           </div>
+          <button
+            onClick={() => updateMovie({ id: movie.id, data: { validated: !movie.validated } })}
+            className="flex items-center gap-1.5 transition-colors duration-150 cursor-pointer"
+            aria-label={movie.validated ? "Mark as unconfirmed" : "Mark as confirmed"}
+          >
+            {movie.validated
+              ? <CircleCheck className="size-4 text-green-400" />
+              : <CircleX className="size-4 text-white/25" />}
+            <span className={`text-xs font-medium tracking-wide uppercase ${movie.validated ? "text-green-400" : "text-white/35"}`}>
+              {movie.validated ? "Confirmed" : "Unconfirmed"}
+            </span>
+          </button>
         </div>
 
         {movie.genres.length > 0 && (
