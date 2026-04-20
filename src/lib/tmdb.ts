@@ -35,6 +35,25 @@ export async function getTmdbWatchProviders(tmdbId: number, type: "movie" | "tv"
   return res.json();
 }
 
+export async function getTmdbSeasonDetails(tvId: number, seasonNumber: number) {
+  const key = getApiKey();
+  const url = `${BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${key}&language=en-US`;
+  const res = await fetch(url, { next: { revalidate: 86400 } });
+  if (!res.ok) throw new Error(`TMDB season details failed: ${res.status}`);
+  return res.json();
+}
+
+export function extractSeasonEpisodes(seasonData: Record<string, unknown>) {
+  const episodes = (seasonData.episodes ?? []) as Array<Record<string, unknown>>;
+  return episodes.map((ep) => ({
+    number: ep.episode_number as number,
+    name: ep.name as string,
+    airDate: (ep.air_date as string) || null,
+    watched: false,
+    stillPath: (ep.still_path as string) || null,
+  }));
+}
+
 export function extractMovieData(details: Record<string, unknown>, type: "movie" | "tv") {
   const credits = details.credits as Record<string, unknown[]> | undefined;
   const cast = (credits?.cast ?? [])

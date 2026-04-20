@@ -2,8 +2,8 @@
  * SQLite stores JSON as strings. These helpers parse/stringify at the DB boundary.
  * When migrating to Postgres, switch schema fields to Json type and remove these.
  */
-import type { Movie, WatchlistItem, Genre, CastMember, StreamingService } from "@/types";
-import type { Movie as PrismaMovie, WatchlistItem as PrismaWatchlistItem } from "@/generated/prisma/client";
+import type { Movie, WatchlistItem, Genre, CastMember, StreamingService, TvSeason, TvEpisode } from "@/types";
+import type { Movie as PrismaMovie, WatchlistItem as PrismaWatchlistItem, TvSeason as PrismaTvSeason } from "@/generated/prisma/client";
 
 export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): Movie {
   return {
@@ -28,7 +28,20 @@ export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): 
     validated: raw.validated,
     createdAt: raw.createdAt.toISOString(),
     updatedAt: raw.updatedAt.toISOString(),
-    tvSeasons: raw.tvSeasons as Movie["tvSeasons"],
+    tvSeasons: raw.tvSeasons ? (raw.tvSeasons as PrismaTvSeason[]).map(deserializeTvSeason) : undefined,
+  };
+}
+
+export function deserializeTvSeason(raw: PrismaTvSeason): TvSeason {
+  return {
+    id: raw.id,
+    movieId: raw.movieId,
+    seasonNumber: raw.seasonNumber,
+    episodeCount: raw.episodeCount,
+    watchedEpisodes: raw.watchedEpisodes,
+    airDate: raw.airDate,
+    overview: raw.overview,
+    episodes: raw.episodes ? safeParseJson<TvEpisode[]>(raw.episodes, []) : null,
   };
 }
 

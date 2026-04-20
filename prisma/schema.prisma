@@ -41,6 +41,7 @@ model TvSeason {
   watchedEpisodes Int     @default(0)
   airDate         String?
   overview        String?
+  episodes        String?  // JSON: [{number, name, airDate, watched, stillPath}]
 
   @@unique([movieId, seasonNumber])
 }

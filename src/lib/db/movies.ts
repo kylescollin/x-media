@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { deserializeMovie } from "./serializers";
-import type { Movie } from "@/types";
+import { deserializeMovie, deserializeTvSeason } from "./serializers";
+import type { Movie, TvEpisode, TvSeason } from "@/types";
 
 export async function getMovies(): Promise<Movie[]> {
   const rows = await prisma.movie.findMany({
@@ -138,6 +138,52 @@ export interface RematchMovieInput {
   cast?: string | null;
   directors?: string | null;
   mediaType: string;
+}
+
+export async function upsertTvSeason(
+  movieId: number,
+  seasonNumber: number,
+  episodeCount: number | null,
+  episodes: TvEpisode[],
+  airDate?: string | null,
+  overview?: string | null
+): Promise<TvSeason> {
+  const row = await prisma.tvSeason.upsert({
+    where: { movieId_seasonNumber: { movieId, seasonNumber } },
+    update: {
+      episodeCount,
+      watchedEpisodes: episodes.filter((e) => e.watched).length,
+      episodes: JSON.stringify(episodes),
+      airDate: airDate ?? undefined,
+      overview: overview ?? undefined,
+    },
+    create: {
+      movieId,
+      seasonNumber,
+      episodeCount,
+      watchedEpisodes: episodes.filter((e) => e.watched).length,
+      episodes: JSON.stringify(episodes),
+      airDate: airDate ?? null,
+      overview: overview ?? null,
+    },
+  });
+  return deserializeTvSeason(row);
+}
+
+export async function updateSeasonEpisodes(
+  movieId: number,
+  seasonNumber: number,
+  episodes: TvEpisode[]
+): Promise<TvSeason> {
+  const watchedEpisodes = episodes.filter((e) => e.watched).length;
+  const row = await prisma.tvSeason.update({
+    where: { movieId_seasonNumber: { movieId, seasonNumber } },
+    data: {
+      episodes: JSON.stringify(episodes),
+      watchedEpisodes,
+    },
+  });
+  return deserializeTvSeason(row);
 }
 
 export async function rematchMovie(id: number, data: RematchMovieInput): Promise<Movie> {

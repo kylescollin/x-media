@@ -4,78 +4,69 @@ import { useState, useMemo } from "react";
 import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMovies } from "@/hooks/useMovies";
-import MovieCard from "./MovieCard";
-import MovieCardSkeleton from "./MovieCardSkeleton";
-import MovieSearch from "./MovieSearch";
-import MovieFilters from "./MovieFilters";
-import MovieDetailModal from "./MovieDetailModal";
+import ShowCard from "./ShowCard";
+import MovieCardSkeleton from "@/components/library/MovieCardSkeleton";
+import MovieSearch from "@/components/library/MovieSearch";
+import MovieFilters from "@/components/library/MovieFilters";
+import MovieDetailModal from "@/components/library/MovieDetailModal";
 import { cn } from "@/lib/utils";
 import type { Movie } from "@/types";
 
 type SortOption = "title" | "added" | "rating" | "year";
 
-export default function MovieGrid() {
-  const { data: movies, isLoading } = useMovies();
+export default function ShowGrid() {
+  const { data: allMovies, isLoading } = useMovies();
 
-  // Filter + sort state
+  // Filter to TV shows only
+  const shows = useMemo(() => allMovies?.filter((m) => m.mediaType === "tv") ?? [], [allMovies]);
+
   const [search, setSearch] = useState("");
   const [filterGenre, setFilterGenre] = useState<string | null>(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>("title"); // A-Z default
+  const [sortBy, setSortBy] = useState<SortOption>("title");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Modal state — no page navigation
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  // Library shows movies only
-  const moviesList = useMemo(() => movies?.filter((m) => m.mediaType === "movie") ?? [], [movies]);
-
-  const selectedMovie = useMemo(
-    () => moviesList.find((m) => m.id === selectedId) ?? null,
-    [moviesList, selectedId]
+  const selectedShow = useMemo(
+    () => shows.find((s) => s.id === selectedId) ?? null,
+    [shows, selectedId]
   );
 
   const allGenres = useMemo(() => {
     const set = new Set<string>();
-    for (const m of moviesList) for (const g of m.genres) set.add(g.name);
+    for (const s of shows) for (const g of s.genres) set.add(g.name);
     return Array.from(set).sort();
-  }, [moviesList]);
+  }, [shows]);
 
-  const activeFilterCount =
-    (filterGenre ? 1 : 0) + (filterFavorites ? 1 : 0);
+  const activeFilterCount = (filterGenre ? 1 : 0) + (filterFavorites ? 1 : 0);
 
   const filtered = useMemo(() => {
-    let list: Movie[] = [...moviesList];
-
+    let list: Movie[] = [...shows];
     if (search) {
       const q = search.toLowerCase();
-      list = list.filter((m) => m.title.toLowerCase().includes(q));
+      list = list.filter((s) => s.title.toLowerCase().includes(q));
     }
     if (filterGenre) {
-      list = list.filter((m) => m.genres.some((g) => g.name === filterGenre));
+      list = list.filter((s) => s.genres.some((g) => g.name === filterGenre));
     }
     if (filterFavorites) {
-      list = list.filter((m) => m.isFavorite);
+      list = list.filter((s) => s.isFavorite);
     }
-
     list.sort((a, b) => {
       if (sortBy === "title") return a.title.localeCompare(b.title);
       if (sortBy === "rating") return (b.userRating ?? 0) - (a.userRating ?? 0);
       if (sortBy === "year") return (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "");
-      return 0; // "added" — API order
+      return 0;
     });
-
     return list;
-  }, [moviesList, search, filterGenre, filterFavorites, sortBy]);
+  }, [shows, search, filterGenre, filterFavorites, sortBy]);
 
   return (
     <>
       <div className="flex flex-col gap-4">
-
-        {/* ── Toolbar ──────────────────────────────────────────── */}
         <div className="flex items-center gap-2 sm:gap-3">
           <MovieSearch value={search} onChange={setSearch} />
 
-          {/* Filters toggle */}
           <button
             onClick={() => setShowFilters((v) => !v)}
             className={cn(
@@ -92,28 +83,22 @@ export default function MovieGrid() {
                 {activeFilterCount}
               </span>
             )}
-            {showFilters ? (
-              <ChevronUp className="h-3 w-3 ml-0.5" />
-            ) : (
-              <ChevronDown className="h-3 w-3 ml-0.5" />
-            )}
+            {showFilters ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
           </button>
 
-          {/* Sort — always visible */}
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
             <SelectTrigger className="h-9 w-36 text-xs border-white/8 bg-white/5 text-white/70 hover:text-white shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="title">Title A–Z</SelectItem>
-              <SelectItem value="year">Release Year</SelectItem>
+              <SelectItem value="year">First Air Year</SelectItem>
               <SelectItem value="rating">My Rating</SelectItem>
               <SelectItem value="added">Date Added</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* ── Collapsible filter panel ──────────────────────── */}
         <MovieFilters
           genres={allGenres}
           activeGenre={filterGenre}
@@ -123,36 +108,33 @@ export default function MovieGrid() {
           visible={showFilters}
         />
 
-        {/* ── Skeleton grid ─────────────────────────────────── */}
         {isLoading && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
-            {Array.from({ length: 28 }).map((_, i) => (
+            {Array.from({ length: 20 }).map((_, i) => (
               <MovieCardSkeleton key={i} />
             ))}
           </div>
         )}
 
-        {/* ── Empty state ───────────────────────────────────── */}
         {!isLoading && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <p className="text-base font-semibold text-white/50">
-              {moviesList.length === 0 ? "No titles yet" : "No matches"}
+              {shows.length === 0 ? "No TV shows yet" : "No matches"}
             </p>
             <p className="text-sm text-white/25 mt-1">
-              {moviesList.length === 0
-                ? "Head to Import to add your Google Sheet list."
+              {shows.length === 0
+                ? "Head to TV Import to add your shows."
                 : "Try adjusting your search or filters."}
             </p>
           </div>
         )}
 
-        {/* ── Movie grid ───────────────────────────────────── */}
         {!isLoading && filtered.length > 0 && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
-            {filtered.map((movie, i) => (
-              <MovieCard
-                key={movie.id}
-                movie={movie}
+            {filtered.map((show, i) => (
+              <ShowCard
+                key={show.id}
+                show={show}
                 onSelect={setSelectedId}
                 priority={i < 14}
               />
@@ -160,18 +142,16 @@ export default function MovieGrid() {
           </div>
         )}
 
-        {/* ── Count ────────────────────────────────────────── */}
-        {!isLoading && moviesList.length > 0 && (
+        {!isLoading && shows.length > 0 && (
           <p className="text-xs text-white/20 text-center pb-6">
-            {filtered.length === moviesList.length
-              ? `${moviesList.length} titles`
-              : `${filtered.length} of ${moviesList.length} titles`}
+            {filtered.length === shows.length
+              ? `${shows.length} shows`
+              : `${filtered.length} of ${shows.length} shows`}
           </p>
         )}
       </div>
 
-      {/* ── Detail modal — rendered outside the grid flow ─── */}
-      <MovieDetailModal movie={selectedMovie} onClose={() => setSelectedId(null)} />
+      <MovieDetailModal movie={selectedShow} onClose={() => setSelectedId(null)} />
     </>
   );
 }

@@ -234,7 +234,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
         {movie.mediaType === "tv" && (
           <TabsContent value="seasons" className="mt-0">
             <div className="max-h-52 overflow-y-auto scrollbar-thin">
-              <SeasonTracker seasons={movie.tvSeasons ?? []} />
+              <SeasonTracker movieId={movie.id} seasons={movie.tvSeasons ?? []} />
             </div>
           </TabsContent>
         )}

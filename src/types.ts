@@ -43,6 +43,14 @@ export interface Movie {
   tvSeasons?: TvSeason[];
 }
 
+export interface TvEpisode {
+  number: number;
+  name: string;
+  airDate: string | null;
+  watched: boolean;
+  stillPath?: string | null;
+}
+
 export interface TvSeason {
   id: number;
   movieId: number;
@@ -51,6 +59,7 @@ export interface TvSeason {
   watchedEpisodes: number;
   airDate: string | null;
   overview: string | null;
+  episodes: TvEpisode[] | null;
 }
 
 export interface WatchlistItem {

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film, List, ShieldCheck } from "lucide-react";
+import { Film, Tv, List, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/library", label: "Library", icon: Film },
+  { href: "/tv", label: "TV Shows", icon: Tv },
   { href: "/watchlist", label: "Watchlist", icon: List },
   { href: "/validate", label: "Validate", icon: ShieldCheck },
 ];
