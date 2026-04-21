@@ -192,7 +192,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
       <div className="mx-5 sm:mx-6 mt-4 h-px bg-white/6" />
 
       {/* ── Tabs ─────────────────────────────────────────────────────── */}
-      <Tabs defaultValue="overview" className="px-5 sm:px-6 pt-2 pb-8">
+      <Tabs defaultValue={movie.mediaType === "tv" ? "seasons" : "overview"} className="px-5 sm:px-6 pt-2 pb-8">
         <TabsList className="mb-4 bg-transparent gap-1 -ml-1">
           <TabsTrigger value="overview" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
             Overview
@@ -233,7 +233,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
 
         {movie.mediaType === "tv" && (
           <TabsContent value="seasons" className="mt-0">
-            <div className="max-h-52 overflow-y-auto scrollbar-thin">
+            <div className="max-h-[28rem] overflow-y-auto scrollbar-thin">
               <SeasonTracker movieId={movie.id} seasons={movie.tvSeasons ?? []} />
             </div>
           </TabsContent>

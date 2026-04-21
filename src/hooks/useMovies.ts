@@ -66,3 +66,19 @@ export function useUpdateMovie() {
     },
   });
 }
+
+export function useAddMovie() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ tmdbId, type }: { tmdbId: number; type: "movie" | "tv" }) => {
+      const res = await fetch("/api/movies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tmdbId, type }),
+      });
+      if (!res.ok) throw new Error("Failed to add to library");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["movies"] }),
+  });
+}

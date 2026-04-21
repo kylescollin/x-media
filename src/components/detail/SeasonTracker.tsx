@@ -34,7 +34,7 @@ export default function SeasonTracker({ movieId, seasons }: SeasonTrackerProps) 
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {seasons.map((season) => {
         const isExpanded = expanded === season.seasonNumber;
         const total = season.episodeCount ?? season.episodes?.length ?? 0;
@@ -50,7 +50,7 @@ export default function SeasonTracker({ movieId, seasons }: SeasonTrackerProps) 
             {/* Season header — clickable to expand */}
             <button
               onClick={() => setExpanded(isExpanded ? null : season.seasonNumber)}
-              className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-white/4 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-3 text-sm hover:bg-white/4 transition-colors"
             >
               <div className="flex items-center gap-2">
                 {complete && (
@@ -114,7 +114,7 @@ export default function SeasonTracker({ movieId, seasons }: SeasonTrackerProps) 
                     <label
                       key={ep.number}
                       className={cn(
-                        "flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer transition-colors",
+                        "flex items-center gap-2.5 px-2 py-2 rounded-md cursor-pointer transition-colors",
                         ep.watched ? "bg-white/5" : "hover:bg-white/3"
                       )}
                     >
