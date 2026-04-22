@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateSeasonEpisodes } from "@/lib/db/movies";
+import { upsertTvSeason } from "@/lib/db/movies";
 import type { TvEpisode } from "@/types";
 
 export async function PATCH(
@@ -17,12 +17,15 @@ export async function PATCH(
 
     const body = await request.json();
     const episodes: TvEpisode[] = body.episodes;
+    const episodeCount: number | null = body.episodeCount ?? null;
+    const airDate: string | null = body.airDate ?? null;
+    const overview: string | null = body.overview ?? null;
 
     if (!Array.isArray(episodes)) {
       return NextResponse.json({ error: "episodes array is required" }, { status: 400 });
     }
 
-    const updated = await updateSeasonEpisodes(movieId, season, episodes);
+    const updated = await upsertTvSeason(movieId, season, episodeCount, episodes, airDate, overview);
     return NextResponse.json(updated);
   } catch (err) {
     console.error("[seasons PATCH]", err);
