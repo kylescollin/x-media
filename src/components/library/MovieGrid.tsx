@@ -21,6 +21,7 @@ export default function MovieGrid() {
   const [search, setSearch] = useState("");
   const [filterGenre, setFilterGenre] = useState<string | null>(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
+  const [filterValidated, setFilterValidated] = useState<boolean | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("title"); // A-Z default
   const [showFilters, setShowFilters] = useState(false);
 
@@ -41,7 +42,7 @@ export default function MovieGrid() {
   }, [moviesList]);
 
   const activeFilterCount =
-    (filterGenre ? 1 : 0) + (filterFavorites ? 1 : 0);
+    (filterGenre ? 1 : 0) + (filterFavorites ? 1 : 0) + (filterValidated !== null ? 1 : 0);
 
   const filtered = useMemo(() => {
     let list: Movie[] = [...moviesList];
@@ -56,6 +57,9 @@ export default function MovieGrid() {
     if (filterFavorites) {
       list = list.filter((m) => m.isFavorite);
     }
+    if (filterValidated !== null) {
+      list = list.filter((m) => m.validated === filterValidated);
+    }
 
     list.sort((a, b) => {
       if (sortBy === "title") return a.title.localeCompare(b.title);
@@ -65,7 +69,7 @@ export default function MovieGrid() {
     });
 
     return list;
-  }, [moviesList, search, filterGenre, filterFavorites, sortBy]);
+  }, [moviesList, search, filterGenre, filterFavorites, filterValidated, sortBy]);
 
   return (
     <>
@@ -120,6 +124,8 @@ export default function MovieGrid() {
           onGenreChange={setFilterGenre}
           favoritesOnly={filterFavorites}
           onFavoritesChange={setFilterFavorites}
+          filterValidated={filterValidated}
+          onValidatedChange={setFilterValidated}
           visible={showFilters}
         />
 

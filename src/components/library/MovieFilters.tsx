@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, CheckCircle, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MovieFiltersProps {
@@ -9,6 +9,8 @@ interface MovieFiltersProps {
   onGenreChange: (g: string | null) => void;
   favoritesOnly: boolean;
   onFavoritesChange: (v: boolean) => void;
+  filterValidated: boolean | null;
+  onValidatedChange: (v: boolean | null) => void;
   visible: boolean;
 }
 
@@ -18,6 +20,8 @@ export default function MovieFilters({
   onGenreChange,
   favoritesOnly,
   onFavoritesChange,
+  filterValidated,
+  onValidatedChange,
   visible,
 }: MovieFiltersProps) {
   return (
@@ -40,6 +44,34 @@ export default function MovieFilters({
         >
           <Star className={cn("h-3 w-3", favoritesOnly && "fill-amber-400 text-amber-400")} />
           Favorites
+        </button>
+
+        {/* Confirmed toggle */}
+        <button
+          onClick={() => onValidatedChange(filterValidated === true ? null : true)}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150",
+            filterValidated === true
+              ? "border-amber-400/60 bg-amber-400/10 text-amber-400"
+              : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"
+          )}
+        >
+          <CheckCircle className={cn("h-3 w-3", filterValidated === true && "text-amber-400")} />
+          Confirmed
+        </button>
+
+        {/* Unconfirmed toggle */}
+        <button
+          onClick={() => onValidatedChange(filterValidated === false ? null : false)}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150",
+            filterValidated === false
+              ? "border-amber-400/60 bg-amber-400/10 text-amber-400"
+              : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"
+          )}
+        >
+          <Circle className={cn("h-3 w-3", filterValidated === false && "text-amber-400")} />
+          Unconfirmed
         </button>
 
         {/* Genre chips */}
