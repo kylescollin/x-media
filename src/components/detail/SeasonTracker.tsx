@@ -38,6 +38,27 @@ export default function SeasonTracker({ movieId, tmdbId, seasons }: SeasonTracke
       .then((r) => r.json())
       .then((data) => {
         if (data?.number_of_seasons) setTotalSeasons(data.number_of_seasons);
+        if (Array.isArray(data?.seasons)) {
+          const initialVirtual: Record<number, VirtualSeasonData> = {};
+          for (const s of data.seasons) {
+            const num = s.season_number as number;
+            initialVirtual[num] = {
+              episodes: null,
+              loading: false,
+              episodeCount: (s.episode_count as number) ?? null,
+              airDate: (s.air_date as string) ?? null,
+              overview: (s.overview as string) ?? null,
+            };
+          }
+          setVirtualData((prev) => {
+            const merged = { ...initialVirtual };
+            for (const key of Object.keys(prev)) {
+              const n = Number(key);
+              if (prev[n]?.episodes !== null) merged[n] = prev[n];
+            }
+            return merged;
+          });
+        }
       })
       .catch(() => {});
   }, [tmdbId]);
@@ -290,7 +311,7 @@ export default function SeasonTracker({ movieId, tmdbId, seasons }: SeasonTracke
                 ) : (
                   <>
                     <span className="text-xs text-white/30">
-                      {total > 0 ? `${watchedCount} / ${total} eps` : "Loading…"}
+                      {total > 0 ? `${watchedCount} / ${total} eps` : "No data"}
                     </span>
                     {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-white/20" /> : <ChevronDown className="h-3.5 w-3.5 text-white/20" />}
                   </>
