@@ -12,7 +12,8 @@
     "clear:placeholder-dates": "tsx scripts/clear-placeholder-dates.ts",
     "import:playwright": "tsx scripts/playwright-watch-dates.ts",
     "import:playwright:dry": "tsx scripts/playwright-watch-dates.ts --dry-run",
-    "export:dates": "tsx scripts/export-dates.ts"
+    "export:dates": "tsx scripts/export-dates.ts",
+    "migrate:prod": "node scripts/migrate-prod.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
