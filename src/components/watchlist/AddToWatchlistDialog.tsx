@@ -12,17 +12,19 @@ import type { TmdbSearchResult } from "@/types";
 export default function AddToWatchlistDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
   const { results, isLoading } = useTmdbSearch(query, "both");
   const { mutate: addItem, isPending } = useAddToWatchlist();
 
   function handleSelect(result: TmdbSearchResult) {
     const type = (result.media_type ?? "movie") as "movie" | "tv";
     addItem(
-      { tmdbId: result.id, type },
+      { tmdbId: result.id, type, viewerLabel },
       {
         onSuccess: () => {
           setOpen(false);
           setQuery("");
+          setViewerLabel("mine");
         },
       }
     );
@@ -39,7 +41,7 @@ export default function AddToWatchlistDialog() {
           <DialogTitle className="text-base font-semibold text-white">Add to watchlist</DialogTitle>
         </DialogHeader>
 
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pt-4 pb-2 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
             <input
@@ -49,6 +51,31 @@ export default function AddToWatchlistDialog() {
               autoFocus
               className="w-full rounded-lg bg-white/6 border border-white/10 text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
             />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-white/35 mr-1">For</span>
+            <button
+              type="button"
+              onClick={() => setViewerLabel("mine")}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                viewerLabel === "mine"
+                  ? "bg-white/15 border-white/25 text-white"
+                  : "border-white/10 text-white/40 hover:text-white/60 hover:border-white/20"
+              }`}
+            >
+              Mine
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewerLabel("ours")}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                viewerLabel === "ours"
+                  ? "bg-white/15 border-white/25 text-white"
+                  : "border-white/10 text-white/40 hover:text-white/60 hover:border-white/20"
+              }`}
+            >
+              Ours
+            </button>
           </div>
         </div>
 

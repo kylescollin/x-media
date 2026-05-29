@@ -59,6 +59,7 @@ export function deserializeWatchlistItem(raw: PrismaWatchlistItem): WatchlistIte
     streamingInfo: raw.streamingInfo
       ? safeParseJson<StreamingService[]>(raw.streamingInfo, [])
       : null,
+    viewerLabel: (raw.viewerLabel ?? "mine") as "mine" | "ours",
     priority: raw.priority,
     addedAt: raw.addedAt.toISOString(),
     updatedAt: raw.updatedAt.toISOString(),

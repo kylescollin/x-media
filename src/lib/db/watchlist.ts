@@ -18,6 +18,7 @@ export interface CreateWatchlistInput {
   releaseDate?: string | null;
   runtime?: number | null;
   genres?: string | null;
+  viewerLabel?: string;
 }
 
 export async function addToWatchlist(data: CreateWatchlistInput): Promise<WatchlistItem> {
@@ -31,6 +32,7 @@ export async function addToWatchlist(data: CreateWatchlistInput): Promise<Watchl
       releaseDate: data.releaseDate,
       runtime: data.runtime,
       genres: data.genres,
+      viewerLabel: data.viewerLabel ?? "mine",
     },
   });
   return deserializeWatchlistItem(row);
@@ -42,7 +44,7 @@ export async function removeFromWatchlist(id: number): Promise<void> {
 
 export async function updateWatchlistItem(
   id: number,
-  data: { priority?: number; streamingInfo?: string | null }
+  data: { priority?: number; streamingInfo?: string | null; viewerLabel?: string }
 ): Promise<WatchlistItem> {
   const row = await prisma.watchlistItem.update({ where: { id }, data });
   return deserializeWatchlistItem(row);

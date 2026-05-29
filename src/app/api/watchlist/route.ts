@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { tmdbId, type = "movie" } = body;
+    const { tmdbId, type = "movie", viewerLabel = "mine" } = body;
 
     if (!tmdbId) {
       return NextResponse.json({ error: "tmdbId is required" }, { status: 400 });
@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       releaseDate: data.releaseDate,
       runtime: data.runtime,
       genres: data.genres,
+      viewerLabel,
     });
 
     return NextResponse.json(item, { status: 201 });

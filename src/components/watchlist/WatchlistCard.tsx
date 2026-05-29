@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
-import { useRemoveFromWatchlist } from "@/hooks/useWatchlist";
+import { useRemoveFromWatchlist, useUpdateWatchlistLabel } from "@/hooks/useWatchlist";
 import type { WatchlistItem } from "@/types";
 
 interface WatchlistCardProps {
@@ -12,6 +12,7 @@ interface WatchlistCardProps {
 
 export default function WatchlistCard({ item }: WatchlistCardProps) {
   const { mutate: remove, isPending } = useRemoveFromWatchlist();
+  const { mutate: updateLabel } = useUpdateWatchlistLabel();
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
   const runtime = item.runtime
     ? `${Math.floor(item.runtime / 60)}h ${item.runtime % 60}m`
@@ -39,6 +40,14 @@ export default function WatchlistCard({ item }: WatchlistCardProps) {
               <span className="text-[10px] font-medium text-white/40 border border-white/12 rounded px-1.5 py-0 capitalize">
                 {item.mediaType}
               </span>
+              <button
+                onClick={() =>
+                  updateLabel({ id: item.id, viewerLabel: item.viewerLabel === "mine" ? "ours" : "mine" })
+                }
+                className="text-[10px] font-medium border rounded px-1.5 py-0 transition-colors capitalize cursor-pointer border-white/12 text-white/40 hover:border-white/25 hover:text-white/60"
+              >
+                {item.viewerLabel}
+              </button>
             </div>
           </div>
           <button

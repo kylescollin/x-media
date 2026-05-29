@@ -73,6 +73,7 @@ export interface WatchlistItem {
   runtime: number | null;
   genres: Genre[] | null;
   streamingInfo: StreamingService[] | null;
+  viewerLabel: "mine" | "ours";
   priority: number;
   addedAt: string;
   updatedAt: string;

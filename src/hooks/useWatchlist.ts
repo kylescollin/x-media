@@ -17,16 +17,51 @@ export function useWatchlist() {
 export function useAddToWatchlist() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ tmdbId, type }: { tmdbId: number; type: "movie" | "tv" }) => {
+    mutationFn: async ({
+      tmdbId,
+      type,
+      viewerLabel = "mine",
+    }: {
+      tmdbId: number;
+      type: "movie" | "tv";
+      viewerLabel?: "mine" | "ours";
+    }) => {
       const res = await fetch("/api/watchlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tmdbId, type }),
+        body: JSON.stringify({ tmdbId, type, viewerLabel }),
       });
       if (!res.ok) throw new Error("Failed to add to watchlist");
       return res.json() as Promise<WatchlistItem>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
+  });
+}
+
+export function useUpdateWatchlistLabel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, viewerLabel }: { id: number; viewerLabel: "mine" | "ours" }) => {
+      const res = await fetch(`/api/watchlist/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ viewerLabel }),
+      });
+      if (!res.ok) throw new Error("Failed to update label");
+      return res.json() as Promise<WatchlistItem>;
+    },
+    onMutate: async ({ id, viewerLabel }) => {
+      await queryClient.cancelQueries({ queryKey: ["watchlist"] });
+      const prev = queryClient.getQueryData<WatchlistItem[]>(["watchlist"]);
+      queryClient.setQueryData<WatchlistItem[]>(["watchlist"], (old) =>
+        old?.map((item) => (item.id === id ? { ...item, viewerLabel } : item))
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["watchlist"], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
   });
 }
 
