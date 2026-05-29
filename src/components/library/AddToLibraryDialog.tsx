@@ -34,7 +34,7 @@ export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium border border-white/8 text-white/40 hover:border-white/15 hover:text-white/70 transition-all duration-150">
+      <DialogTrigger className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-white text-black text-sm font-semibold h-8 px-3 hover:bg-white/90 transition-colors">
         <Plus className="h-3.5 w-3.5" />
         <span>Add {label}</span>
       </DialogTrigger>
