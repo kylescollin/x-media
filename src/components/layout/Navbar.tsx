@@ -16,7 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
+    <header className="hidden sm:block sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
       <nav className="flex items-center gap-8 px-6 sm:px-10 lg:px-16 h-20">
         {/* Logo */}
         <Link href="/library" className="flex items-center gap-2 shrink-0">
