@@ -40,24 +40,40 @@ export default function WatchlistCard({ item }: WatchlistCardProps) {
               <span className="text-[10px] font-medium text-white/40 border border-white/12 rounded px-1.5 py-0 capitalize">
                 {item.mediaType}
               </span>
-              <button
-                onClick={() =>
-                  updateLabel({ id: item.id, viewerLabel: item.viewerLabel === "mine" ? "ours" : "mine" })
-                }
-                className="text-[10px] font-medium border rounded px-1.5 py-0 transition-colors capitalize cursor-pointer border-white/12 text-white/40 hover:border-white/25 hover:text-white/60"
-              >
-                {item.viewerLabel}
-              </button>
             </div>
           </div>
-          <button
-            onClick={() => remove(item.id)}
-            disabled={isPending}
-            className="text-white/25 hover:text-red-400 transition-colors flex-shrink-0 p-1"
-            aria-label="Remove from watchlist"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-0.5 p-0.5 rounded bg-white/5">
+              <button
+                onClick={() => updateLabel({ id: item.id, viewerLabel: "mine" })}
+                className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+                  item.viewerLabel === "mine"
+                    ? "bg-white/15 text-white"
+                    : "text-white/40 hover:text-white/60"
+                }`}
+              >
+                M
+              </button>
+              <button
+                onClick={() => updateLabel({ id: item.id, viewerLabel: "ours" })}
+                className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+                  item.viewerLabel === "ours"
+                    ? "bg-white/15 text-white"
+                    : "text-white/40 hover:text-white/60"
+                }`}
+              >
+                O
+              </button>
+            </div>
+            <button
+              onClick={() => remove(item.id)}
+              disabled={isPending}
+              className="text-white/25 hover:text-red-400 transition-colors flex-shrink-0 p-1"
+              aria-label="Remove from watchlist"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {item.overview && (
