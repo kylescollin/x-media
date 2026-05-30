@@ -53,7 +53,7 @@ export default function AddToWatchlistDialog() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search movies & TV shows…"
               autoFocus
-              className="w-full rounded-lg bg-white/6 border border-white/10 text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
+              className="w-full rounded-lg bg-white/6 border border-white/10 text-base sm:text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
             />
           </div>
           <div className="flex items-center gap-1.5">
@@ -84,7 +84,7 @@ export default function AddToWatchlistDialog() {
         </div>
 
         <div
-          className="max-h-72 overflow-y-auto scrollbar-thin px-2 pb-3 space-y-0.5"
+          className="max-h-72 overflow-y-auto overscroll-contain scrollbar-thin px-2 pb-3 space-y-0.5"
           onScroll={(e) => {
             const el = e.currentTarget;
             if (el.scrollHeight - el.scrollTop - el.clientHeight > 80) return;
