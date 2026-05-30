@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Search, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
@@ -21,8 +21,12 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingResult, setPendingResult] = useState<TmdbSearchResult | null>(null);
+  const [displayCount, setDisplayCount] = useState(10);
   const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
+  const visibleResults = results.slice(0, displayCount);
   const queryClient = useQueryClient();
+
+  useEffect(() => { setDisplayCount(10); }, [query]);
 
   async function handleConfirm() {
     if (!pendingResult) return;
@@ -178,7 +182,10 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
                 className="overflow-y-auto flex-1 py-2"
                 onScroll={(e) => {
                   const el = e.currentTarget;
-                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80 && hasMore && !isLoadingMore) {
+                  if (el.scrollHeight - el.scrollTop - el.clientHeight > 80) return;
+                  if (displayCount < results.length) {
+                    setDisplayCount((c) => c + 10);
+                  } else if (hasMore && !isLoadingMore) {
                     loadMore();
                   }
                 }}
@@ -191,7 +198,7 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
                 {results.length === 0 && !isLoading && query.trim().length >= 2 && (
                   <p className="px-5 py-6 text-sm text-white/35 text-center">No results found.</p>
                 )}
-                {results.map((r) => (
+                {visibleResults.map((r) => (
                   <button
                     key={`${r.id}-${r.media_type}`}
                     onClick={() => setPendingResult(r)}

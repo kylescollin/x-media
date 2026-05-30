@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,8 +13,12 @@ export default function AddToWatchlistDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
+  const [displayCount, setDisplayCount] = useState(10);
   const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
   const { mutate: addItem, isPending } = useAddToWatchlist();
+  const visibleResults = results.slice(0, displayCount);
+
+  useEffect(() => { setDisplayCount(10); }, [query]);
 
   function handleSelect(result: TmdbSearchResult) {
     const type = (result.media_type ?? "movie") as "movie" | "tv";
@@ -83,7 +87,10 @@ export default function AddToWatchlistDialog() {
           className="max-h-72 overflow-y-auto scrollbar-thin px-2 pb-3 space-y-0.5"
           onScroll={(e) => {
             const el = e.currentTarget;
-            if (el.scrollHeight - el.scrollTop - el.clientHeight < 80 && hasMore && !isLoadingMore) {
+            if (el.scrollHeight - el.scrollTop - el.clientHeight > 80) return;
+            if (displayCount < results.length) {
+              setDisplayCount((c) => c + 10);
+            } else if (hasMore && !isLoadingMore) {
               loadMore();
             }
           }}
@@ -94,7 +101,7 @@ export default function AddToWatchlistDialog() {
           {!isLoading && query.length >= 2 && results.length === 0 && (
             <p className="text-sm text-white/35 px-3 py-6 text-center">No results found</p>
           )}
-          {results.map((result) => {
+          {visibleResults.map((result) => {
             const title = result.title ?? result.name ?? "";
             const year = (result.release_date ?? result.first_air_date ?? "").slice(0, 4);
             return (
