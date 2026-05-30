@@ -21,7 +21,7 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingResult, setPendingResult] = useState<TmdbSearchResult | null>(null);
-  const { results, isLoading } = useTmdbSearch(query, "both");
+  const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
   const queryClient = useQueryClient();
 
   async function handleConfirm() {
@@ -174,7 +174,15 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
               </div>
 
               {/* Results */}
-              <div className="overflow-y-auto flex-1 py-2">
+              <div
+                className="overflow-y-auto flex-1 py-2"
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80 && hasMore && !isLoadingMore) {
+                    loadMore();
+                  }
+                }}
+              >
                 {error && (
                   <p className="mx-5 mt-3 mb-1 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
                     {error}
@@ -215,6 +223,9 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
                     </div>
                   </button>
                 ))}
+                {isLoadingMore && (
+                  <p className="px-5 py-3 text-xs text-white/35 text-center">Loading more…</p>
+                )}
               </div>
 
               {/* Footer */}

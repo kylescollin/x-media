@@ -11,9 +11,9 @@ export function tmdbImage(path: string | null, size: "w154" | "w342" | "w500" | 
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
-export async function searchTmdb(query: string, type: "movie" | "tv" = "movie") {
+export async function searchTmdb(query: string, type: "movie" | "tv" = "movie", page = 1) {
   const key = getApiKey();
-  const url = `${BASE_URL}/search/${type}?api_key=${key}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`;
+  const url = `${BASE_URL}/search/${type}?api_key=${key}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=${page}`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`TMDB search failed: ${res.status}`);
   return res.json();

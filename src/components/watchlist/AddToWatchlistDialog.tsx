@@ -13,7 +13,7 @@ export default function AddToWatchlistDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
-  const { results, isLoading } = useTmdbSearch(query, "both");
+  const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
   const { mutate: addItem, isPending } = useAddToWatchlist();
 
   function handleSelect(result: TmdbSearchResult) {
@@ -79,7 +79,15 @@ export default function AddToWatchlistDialog() {
           </div>
         </div>
 
-        <div className="max-h-72 overflow-y-auto scrollbar-thin px-2 pb-3 space-y-0.5">
+        <div
+          className="max-h-72 overflow-y-auto scrollbar-thin px-2 pb-3 space-y-0.5"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            if (el.scrollHeight - el.scrollTop - el.clientHeight < 80 && hasMore && !isLoadingMore) {
+              loadMore();
+            }
+          }}
+        >
           {isLoading && (
             <p className="text-sm text-white/35 px-3 py-6 text-center">Searching…</p>
           )}
@@ -121,6 +129,9 @@ export default function AddToWatchlistDialog() {
               </button>
             );
           })}
+          {isLoadingMore && (
+            <p className="text-xs text-white/35 py-3 text-center">Loading more…</p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
