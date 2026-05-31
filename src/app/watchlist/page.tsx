@@ -3,21 +3,21 @@
 import { useState } from "react";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import WatchlistCard from "@/components/watchlist/WatchlistCard";
+import WatchlistDetailModal from "@/components/watchlist/WatchlistDetailModal";
 import AddToWatchlistDialog from "@/components/watchlist/AddToWatchlistDialog";
 
 export default function WatchlistPage() {
   const { data: items, isLoading } = useWatchlist();
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const filtered = items?.filter((i) => i.viewerLabel === viewerLabel) ?? [];
+  const selectedItem = items?.find((i) => i.id === selectedId) ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Watchlist</h1>
-          <p className="text-sm text-white/35 mt-1">Movies & shows to watch next</p>
-        </div>
+    <div className="px-6 sm:px-10 lg:px-16 py-8 sm:py-10">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-4xl font-bold tracking-tight text-white">Watchlist</h1>
         <AddToWatchlistDialog />
       </div>
 
@@ -45,9 +45,9 @@ export default function WatchlistPage() {
       </div>
 
       {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-[88px] w-full rounded-xl bg-white/4 animate-pulse" />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="aspect-[2/3] rounded-lg bg-white/4 animate-pulse" />
           ))}
         </div>
       )}
@@ -64,12 +64,25 @@ export default function WatchlistPage() {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <div className="space-y-2">
-          {filtered.map((item) => (
-            <WatchlistCard key={item.id} item={item} />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
+          {filtered.map((item, i) => (
+            <WatchlistCard
+              key={item.id}
+              item={item}
+              onSelect={setSelectedId}
+              priority={i < 8}
+            />
           ))}
         </div>
       )}
+
+      {!isLoading && filtered.length > 0 && (
+        <p className="mt-8 text-center text-xs text-white/20">
+          {filtered.length} {filtered.length === 1 ? "title" : "titles"}
+        </p>
+      )}
+
+      <WatchlistDetailModal item={selectedItem} onClose={() => setSelectedId(null)} />
     </div>
   );
 }
