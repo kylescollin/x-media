@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Plus, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,16 +9,49 @@ import { useTmdbSearch } from "@/hooks/useTmdbSearch";
 import { useAddToWatchlist } from "@/hooks/useWatchlist";
 import type { TmdbSearchResult } from "@/types";
 
+function preventInputZoom() {
+  document.querySelector('meta[name="viewport"]')
+    ?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
+}
+
+function restoreInputZoom() {
+  document.querySelector('meta[name="viewport"]')
+    ?.setAttribute('content', 'width=device-width, initial-scale=1');
+}
+
 export default function AddToWatchlistDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
   const [displayCount, setDisplayCount] = useState(10);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
   const { mutate: addItem, isPending } = useAddToWatchlist();
   const visibleResults = results.slice(0, displayCount);
 
   useEffect(() => { setDisplayCount(10); }, [query]);
+
+  // Focus input after dialog animation completes to avoid iOS transform-zoom bug
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 150);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  // iOS-safe body scroll lock — overflow:hidden alone doesn't work on Safari
+  useEffect(() => {
+    if (!open) return;
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
 
   function handleSelect(result: TmdbSearchResult) {
     const type = (result.media_type ?? "movie") as "movie" | "tv";
@@ -49,10 +82,12 @@ export default function AddToWatchlistDialog() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
             <input
+              ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search movies & TV shows…"
-              autoFocus
+              onFocus={preventInputZoom}
+              onBlur={restoreInputZoom}
               className="w-full rounded-lg bg-white/6 border border-white/10 text-base sm:text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
             />
           </div>

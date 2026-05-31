@@ -8,6 +8,16 @@ import { tmdbImage } from "@/lib/tmdb";
 import { useTmdbSearch } from "@/hooks/useTmdbSearch";
 import { useAddMovie } from "@/hooks/useMovies";
 
+function preventInputZoom() {
+  document.querySelector('meta[name="viewport"]')
+    ?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
+}
+
+function restoreInputZoom() {
+  document.querySelector('meta[name="viewport"]')
+    ?.setAttribute('content', 'width=device-width, initial-scale=1');
+}
+
 interface AddToLibraryDialogProps {
   type: "movie" | "tv";
 }
@@ -15,6 +25,7 @@ interface AddToLibraryDialogProps {
 export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, type);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -29,6 +40,28 @@ export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
     return () => observer.disconnect();
   }, [hasMore, isLoadingMore, loadMore]);
   const { mutate: addMovie, isPending } = useAddMovie();
+
+  // Focus input after dialog animation completes to avoid iOS transform-zoom bug
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 150);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  // iOS-safe body scroll lock — overflow:hidden alone doesn't work on Safari
+  useEffect(() => {
+    if (!open) return;
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
 
   const label = type === "movie" ? "movie" : "TV show";
 
@@ -59,16 +92,18 @@ export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
             <input
+              ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search ${label}s…`}
-              autoFocus
-              className="w-full rounded-lg bg-white/6 border border-white/10 text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
+              onFocus={preventInputZoom}
+              onBlur={restoreInputZoom}
+              className="w-full rounded-lg bg-white/6 border border-white/10 text-base sm:text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
             />
           </div>
         </div>
 
-        <div className="max-h-72 overflow-y-auto scrollbar-thin px-2 pb-3 space-y-0.5">
+        <div className="max-h-72 overflow-y-auto overscroll-contain scrollbar-thin px-2 pb-3 space-y-0.5">
           {isLoading && (
             <p className="text-sm text-white/35 px-3 py-6 text-center">Searching…</p>
           )}
