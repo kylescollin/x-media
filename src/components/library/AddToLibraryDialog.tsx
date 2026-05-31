@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Plus, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,7 +15,19 @@ interface AddToLibraryDialogProps {
 export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { results, isLoading } = useTmdbSearch(query, type);
+  const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, type);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore && !isLoadingMore) loadMore(); },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, loadMore]);
   const { mutate: addMovie, isPending } = useAddMovie();
 
   const label = type === "movie" ? "movie" : "TV show";
@@ -93,6 +105,9 @@ export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
               </button>
             );
           })}
+          <div ref={sentinelRef} className="py-1">
+            {isLoadingMore && <p className="text-xs text-white/30 text-center py-2">Loading more…</p>}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
