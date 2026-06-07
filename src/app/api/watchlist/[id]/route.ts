@@ -5,7 +5,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
     const body = await request.json();
-    const item = await updateWatchlistItem(Number(id), body);
+    const { seasons, ...rest } = body;
+    const updateData = {
+      ...rest,
+      ...(seasons !== undefined
+        ? { seasons: seasons === null ? null : JSON.stringify(seasons) }
+        : {}),
+    };
+    const item = await updateWatchlistItem(Number(id), updateData);
     return NextResponse.json(item);
   } catch (err) {
     console.error("[watchlist PATCH]", err);

@@ -5,6 +5,9 @@ import { X, Trash2 } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CastList from "@/components/detail/CastList";
+import WatchlistSeasonTracker from "./WatchlistSeasonTracker";
 import { useRemoveFromWatchlist, useUpdateWatchlistLabel } from "@/hooks/useWatchlist";
 import type { WatchlistItem } from "@/types";
 
@@ -27,12 +30,23 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
     onClose();
   }
 
+  const isTv = item.mediaType === "tv";
+
   return (
     <div className="flex flex-col bg-[oklch(0.12_0_0)]">
 
-      {/* Backdrop — blurred poster (no backdropPath stored for watchlist items) */}
+      {/* Backdrop */}
       <div className="relative h-52 sm:h-96 w-full overflow-hidden bg-[oklch(0.09_0_0)] shrink-0">
-        {item.posterPath && (
+        {item.backdropPath ? (
+          <Image
+            src={tmdbImage(item.backdropPath, "original")}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, 1024px"
+            className="object-cover object-top"
+            priority
+          />
+        ) : item.posterPath ? (
           <Image
             src={tmdbImage(item.posterPath, "w500")}
             alt=""
@@ -41,10 +55,9 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
             className="object-cover object-top blur-sm scale-110"
             priority
           />
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-[oklch(0.12_0_0)]" />
 
-        {/* Close button */}
         <div className="absolute top-3 right-3 z-10">
           <button
             onClick={onClose}
@@ -125,7 +138,6 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
           </button>
         </div>
 
-        {/* Genres */}
         {item.genres && item.genres.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {item.genres.map((g) => (
@@ -143,14 +155,56 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
       {/* Divider */}
       <div className="mx-5 sm:mx-6 mt-4 h-px bg-white/6" />
 
-      {/* Overview */}
-      <div className="px-5 sm:px-6 pt-4 pb-8">
-        {item.overview ? (
-          <p className="text-sm leading-relaxed text-white/60">{item.overview}</p>
-        ) : (
-          <p className="text-sm text-white/35">No overview available.</p>
-        )}
-      </div>
+      {/* Content — tabs for TV, simple overview for movies */}
+      {isTv ? (
+        <Tabs defaultValue="overview" className="px-5 sm:px-6 pt-2 pb-8">
+          <TabsList className="mb-4 bg-transparent gap-1 -ml-1">
+            <TabsTrigger value="overview" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="cast" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Cast
+            </TabsTrigger>
+            <TabsTrigger value="seasons" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Seasons
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-0">
+            <div className="max-h-40 overflow-y-auto scrollbar-thin">
+              {item.overview ? (
+                <p className="text-sm leading-relaxed text-white/60">{item.overview}</p>
+              ) : (
+                <p className="text-sm text-white/35">No overview available.</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="cast" className="mt-0">
+            <div className="max-h-52 overflow-y-auto scrollbar-thin">
+              <CastList cast={item.cast ?? []} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="seasons" className="mt-0">
+            <div className="max-h-[28rem] overflow-y-auto scrollbar-thin">
+              <WatchlistSeasonTracker
+                watchlistItemId={item.id}
+                tmdbId={item.tmdbId}
+                seasons={item.tvSeasons}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="px-5 sm:px-6 pt-4 pb-8">
+          {item.overview ? (
+            <p className="text-sm leading-relaxed text-white/60">{item.overview}</p>
+          ) : (
+            <p className="text-sm text-white/35">No overview available.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

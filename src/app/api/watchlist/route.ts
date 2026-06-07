@@ -29,10 +29,12 @@ export async function POST(request: NextRequest) {
       title: data.title,
       mediaType: data.mediaType,
       posterPath: data.posterPath,
+      backdropPath: data.backdropPath,
       overview: data.overview,
       releaseDate: data.releaseDate,
       runtime: data.runtime,
       genres: data.genres,
+      cast: data.cast,
       viewerLabel,
     });
 

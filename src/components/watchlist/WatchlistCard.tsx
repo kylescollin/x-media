@@ -13,6 +13,13 @@ interface WatchlistCardProps {
 export default function WatchlistCard({ item, onSelect, priority = false }: WatchlistCardProps) {
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
 
+  const tvPct = (() => {
+    if (item.mediaType !== "tv" || !item.tvSeasons?.length) return null;
+    const total = item.tvSeasons.reduce((s, season) => s + (season.episodeCount ?? 0), 0);
+    const watched = item.tvSeasons.reduce((s, season) => s + season.watchedEpisodes, 0);
+    return total > 0 ? Math.round((watched / total) * 100) : 0;
+  })();
+
   return (
     <div
       onClick={() => onSelect(item.id)}
@@ -33,6 +40,17 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
         priority={priority}
         draggable={false}
       />
+
+      {/* % complete chip — always visible for TV shows with tracked seasons */}
+      {tvPct !== null && (
+        <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
+          <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
+            <span className="text-[10px] font-medium text-white/70 truncate">
+              {tvPct}% watched
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Hover shadow ring */}
       <div className="absolute inset-0 rounded-lg ring-1 ring-white/0 group-hover:ring-white/10 transition-all duration-300" />

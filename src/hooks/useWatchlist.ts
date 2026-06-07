@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { WatchlistItem } from "@/types";
+import type { WatchlistItem, WatchlistTvSeason } from "@/types";
 
 export function useWatchlist() {
   return useQuery<WatchlistItem[]>({
@@ -55,6 +55,33 @@ export function useUpdateWatchlistLabel() {
       const prev = queryClient.getQueryData<WatchlistItem[]>(["watchlist"]);
       queryClient.setQueryData<WatchlistItem[]>(["watchlist"], (old) =>
         old?.map((item) => (item.id === id ? { ...item, viewerLabel } : item))
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["watchlist"], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
+  });
+}
+
+export function useUpdateWatchlistSeasons() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, seasons }: { id: number; seasons: WatchlistTvSeason[] }) => {
+      const res = await fetch(`/api/watchlist/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seasons }),
+      });
+      if (!res.ok) throw new Error("Failed to update watchlist seasons");
+      return res.json() as Promise<WatchlistItem>;
+    },
+    onMutate: async ({ id, seasons }) => {
+      await queryClient.cancelQueries({ queryKey: ["watchlist"] });
+      const prev = queryClient.getQueryData<WatchlistItem[]>(["watchlist"]);
+      queryClient.setQueryData<WatchlistItem[]>(["watchlist"], (old) =>
+        old?.map((item) => (item.id === id ? { ...item, tvSeasons: seasons } : item))
       );
       return { prev };
     },

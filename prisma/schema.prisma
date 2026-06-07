@@ -52,11 +52,14 @@ model WatchlistItem {
   title         String
   mediaType     String   @default("movie")
   posterPath    String?
+  backdropPath  String?
   overview      String?
   releaseDate   String?
   runtime       Int?
   genres        String?
+  cast          String?  // JSON: CastMember[]
   streamingInfo String?  // JSON: {service, url}[]
+  seasons       String?  // JSON: WatchlistTvSeason[] — tracked episode progress
   viewerLabel   String   @default("mine") // "mine" | "ours"
   priority      Int      @default(0)
   addedAt       DateTime @default(now())

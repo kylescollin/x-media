@@ -62,17 +62,29 @@ export interface TvSeason {
   episodes: TvEpisode[] | null;
 }
 
+export interface WatchlistTvSeason {
+  seasonNumber: number;
+  episodeCount: number | null;
+  watchedEpisodes: number;
+  airDate: string | null;
+  overview: string | null;
+  episodes: TvEpisode[] | null;
+}
+
 export interface WatchlistItem {
   id: number;
   tmdbId: number;
   title: string;
   mediaType: MediaType;
   posterPath: string | null;
+  backdropPath: string | null;
   overview: string | null;
   releaseDate: string | null;
   runtime: number | null;
   genres: Genre[] | null;
+  cast: CastMember[] | null;
   streamingInfo: StreamingService[] | null;
+  tvSeasons: WatchlistTvSeason[] | null;
   viewerLabel: "mine" | "ours";
   priority: number;
   addedAt: string;
