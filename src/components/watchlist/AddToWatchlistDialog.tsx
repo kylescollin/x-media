@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { tmdbImage } from "@/lib/tmdb";
 import { useTmdbSearch } from "@/hooks/useTmdbSearch";
-import { useAddToWatchlist } from "@/hooks/useWatchlist";
+import { useWatchlist, useAddToWatchlist, useRemoveFromWatchlist } from "@/hooks/useWatchlist";
 import type { TmdbSearchResult } from "@/types";
 
 function preventInputZoom() {
@@ -24,12 +24,35 @@ export default function AddToWatchlistDialog() {
   const [query, setQuery] = useState("");
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
   const [displayCount, setDisplayCount] = useState(10);
+  const [addedThisSession, setAddedThisSession] = useState<Map<number, number>>(new Map());
+  const [pendingTmdbId, setPendingTmdbId] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
-  const { mutate: addItem, isPending } = useAddToWatchlist();
+  const { mutate: addItem } = useAddToWatchlist();
+  const { mutate: removeItem } = useRemoveFromWatchlist();
+  const { data: watchlistItems = [] } = useWatchlist();
   const visibleResults = results.slice(0, displayCount);
 
+  // tmdbId → watchlistId: existing items + anything added this session
+  const inWatchlist = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const item of watchlistItems) {
+      map.set(item.tmdbId, item.id);
+    }
+    for (const [tmdbId, id] of addedThisSession) {
+      map.set(tmdbId, id);
+    }
+    return map;
+  }, [watchlistItems, addedThisSession]);
+
   useEffect(() => { setDisplayCount(10); }, [query]);
+
+  useEffect(() => {
+    if (!open) {
+      setAddedThisSession(new Map());
+      setPendingTmdbId(null);
+    }
+  }, [open]);
 
   // Focus input after dialog animation completes to avoid iOS transform-zoom bug
   useEffect(() => {
@@ -53,18 +76,33 @@ export default function AddToWatchlistDialog() {
     };
   }, [open]);
 
-  function handleSelect(result: TmdbSearchResult) {
+  function handleAdd(result: TmdbSearchResult) {
     const type = (result.media_type ?? "movie") as "movie" | "tv";
+    setPendingTmdbId(result.id);
     addItem(
       { tmdbId: result.id, type, viewerLabel },
       {
-        onSuccess: () => {
-          setOpen(false);
-          setQuery("");
-          setViewerLabel("mine");
+        onSuccess: (item) => {
+          setAddedThisSession((prev) => new Map(prev).set(result.id, item.id));
+          setPendingTmdbId(null);
         },
+        onError: () => setPendingTmdbId(null),
       }
     );
+  }
+
+  function handleRemove(tmdbId: number, watchlistId: number) {
+    setPendingTmdbId(tmdbId);
+    // Optimistically remove from session tracking to match RQ cache optimistic update
+    setAddedThisSession((prev) => {
+      const next = new Map(prev);
+      next.delete(tmdbId);
+      return next;
+    });
+    removeItem(watchlistId, {
+      onSuccess: () => setPendingTmdbId(null),
+      onError: () => setPendingTmdbId(null),
+    });
   }
 
   return (
@@ -139,12 +177,14 @@ export default function AddToWatchlistDialog() {
           {visibleResults.map((result) => {
             const title = result.title ?? result.name ?? "";
             const year = (result.release_date ?? result.first_air_date ?? "").slice(0, 4);
+            const watchlistId = inWatchlist.get(result.id);
+            const isAdded = watchlistId !== undefined;
+            const isMutating = pendingTmdbId === result.id;
+
             return (
-              <button
+              <div
                 key={`${result.media_type}-${result.id}`}
-                onClick={() => handleSelect(result)}
-                disabled={isPending}
-                className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-white/6 transition-colors"
+                className="w-full flex items-center gap-3 rounded-lg px-3 py-2"
               >
                 <div className="relative h-12 w-8 flex-shrink-0 rounded overflow-hidden bg-white/8">
                   {result.poster_path ? (
@@ -168,7 +208,27 @@ export default function AddToWatchlistDialog() {
                     </span>
                   </div>
                 </div>
-              </button>
+                <button
+                  type="button"
+                  disabled={isMutating}
+                  onClick={() =>
+                    isAdded ? handleRemove(result.id, watchlistId) : handleAdd(result)
+                  }
+                  className={`flex-shrink-0 min-w-[56px] flex items-center justify-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md border transition-colors disabled:opacity-50 ${
+                    isAdded
+                      ? "border-white/15 text-white/50 hover:text-red-400 hover:border-red-400/30"
+                      : "border-white/20 text-white/70 hover:text-white hover:border-white/35"
+                  }`}
+                >
+                  {isMutating ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : isAdded ? (
+                    "Remove"
+                  ) : (
+                    "Add"
+                  )}
+                </button>
+              </div>
             );
           })}
           {isLoadingMore && (

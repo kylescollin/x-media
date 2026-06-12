@@ -17,11 +17,10 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
   const year = show.releaseDate ? new Date(show.releaseDate).getFullYear() : null;
   const { mutate: updateMovie } = useUpdateMovie();
 
-  const totalSeasons = show.tvSeasons?.length ?? 0;
-  const completedSeasons = show.tvSeasons?.filter(
-    (s) => s.episodeCount !== null && s.watchedEpisodes >= (s.episodeCount ?? 0)
-  ).length ?? 0;
-  const hasSeasons = totalSeasons > 0;
+  const totalEpisodes = show.tvSeasons?.reduce((sum, s) => sum + (s.episodeCount ?? 0), 0) ?? 0;
+  const watchedEpisodeCount = show.tvSeasons?.reduce((sum, s) => sum + s.watchedEpisodes, 0) ?? 0;
+  const watchPct = totalEpisodes > 0 ? Math.round((watchedEpisodeCount / totalEpisodes) * 100) : 0;
+  const hasSeasons = (show.tvSeasons?.length ?? 0) > 0;
 
   function toggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
@@ -93,9 +92,7 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
         <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
           <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
             <span className="text-[10px] font-medium text-white/70 truncate">
-              {completedSeasons === totalSeasons
-                ? `${totalSeasons} season${totalSeasons !== 1 ? "s" : ""}`
-                : `S${show.tvSeasons!.map((s) => s.seasonNumber).join(", S")}`}
+              {watchPct}% watched
             </span>
           </div>
         </div>
