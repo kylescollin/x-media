@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, MoreHorizontal, Trash2, RefreshCw, CircleCheck, CircleX } from "lucide-react";
+import { X, MoreHorizontal, Trash2, RefreshCw, CircleCheck, CircleHelp } from "lucide-react";
 import { Menu } from "@base-ui/react";
 import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +67,19 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
         {/* Gradient: transparent → modal bg on the sides */}
         <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.12_0_0)]/0 to-transparent" />
 
+        {/* Top-left: validated status */}
+        <div className="absolute top-3 left-3 z-10">
+          <button
+            onClick={() => updateMovie({ id: movie.id, data: { validated: !movie.validated } })}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-colors duration-150 hover:bg-black/70"
+            aria-label={movie.validated ? "Mark as unconfirmed" : "Mark as confirmed"}
+          >
+            {movie.validated
+              ? <CircleCheck className="h-4 w-4 text-green-400" />
+              : <CircleHelp className="h-4 w-4 text-white/40" />}
+          </button>
+        </div>
+
         {/* Top-right buttons */}
         <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
           <Menu.Root>
@@ -124,9 +137,12 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
 
         {/* Title + meta — sits bottom-aligned with poster */}
         <div className="flex flex-col justify-end pb-1 min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight line-clamp-2">
-            {movie.title}
-          </h2>
+          <div className="flex items-start gap-1">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight line-clamp-2">
+              {movie.title}
+            </h2>
+            <FavoriteToggle movieId={movie.id} isFavorite={movie.isFavorite} className="mt-0.5 shrink-0" />
+          </div>
           <div className="flex items-center gap-1.5 flex-wrap mt-2 text-sm text-white/45">
             {year && <span>{year}</span>}
             {runtime && <><span>·</span><span>{runtime}</span></>}
@@ -146,32 +162,11 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
       {/* ── Actions + genres ─────────────────────────────────────────── */}
       <div className="px-5 sm:px-6 mt-4 flex flex-col gap-3">
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/35 font-medium tracking-wide uppercase">Rate</span>
-            <StarRating movieId={movie.id} rating={movie.userRating} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-white/35 font-medium tracking-wide uppercase">
-              {movie.isFavorite ? "Favorited" : "Favorite"}
-            </span>
-            <FavoriteToggle movieId={movie.id} isFavorite={movie.isFavorite} />
-          </div>
+          <StarRating movieId={movie.id} rating={movie.userRating} />
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/35 font-medium tracking-wide uppercase">Watched</span>
             <WatchedDateInput movieId={movie.id} watchedDate={movie.watchedDate} />
           </div>
-          <button
-            onClick={() => updateMovie({ id: movie.id, data: { validated: !movie.validated } })}
-            className="flex items-center gap-1.5 transition-colors duration-150 cursor-pointer"
-            aria-label={movie.validated ? "Mark as unconfirmed" : "Mark as confirmed"}
-          >
-            {movie.validated
-              ? <CircleCheck className="size-4 text-green-400" />
-              : <CircleX className="size-4 text-white/25" />}
-            <span className={`text-xs font-medium tracking-wide uppercase ${movie.validated ? "text-green-400" : "text-white/35"}`}>
-              {movie.validated ? "Confirmed" : "Unconfirmed"}
-            </span>
-          </button>
         </div>
 
         {movie.genres.length > 0 && (
