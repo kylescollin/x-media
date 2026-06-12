@@ -126,8 +126,7 @@ export default function ValidateView() {
       </div>
 
       {/* Validation prompt + actions */}
-      <div className="sticky bottom-0 sm:bottom-auto border-t border-white/8 bg-[oklch(0.07_0_0)]/90 backdrop-blur-md px-4 sm:px-6 py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4">
-        <p className="text-xs text-white/40 text-center mb-3">Is this the movie you watched?</p>
+      <div className="sticky bottom-14 sm:bottom-auto border-t border-white/8 bg-[oklch(0.07_0_0)]/90 backdrop-blur-md px-4 sm:px-6 py-4">
         <div className="flex gap-2">
           <button
             onClick={handleConfirm}
