@@ -1,12 +1,33 @@
 import { prisma } from "@/lib/prisma";
-import { deserializeWatchlistItem } from "./serializers";
+import { deserializeWatchlistItem, deserializeTvSeason } from "./serializers";
 import type { WatchlistItem } from "@/types";
 
 export async function getWatchlistItems(): Promise<WatchlistItem[]> {
   const rows = await prisma.watchlistItem.findMany({
     orderBy: [{ priority: "desc" }, { addedAt: "desc" }],
   });
-  return rows.map(deserializeWatchlistItem);
+  const items = rows.map(deserializeWatchlistItem);
+
+  const tvTmdbIds = items.filter((i) => i.mediaType === "tv").map((i) => i.tmdbId);
+  if (tvTmdbIds.length === 0) return items;
+
+  const linkedMovies = await prisma.movie.findMany({
+    where: { tmdbId: { in: tvTmdbIds }, mediaType: "tv" },
+    include: { tvSeasons: true },
+  });
+  if (linkedMovies.length === 0) return items;
+
+  const movieByTmdbId = new Map(linkedMovies.map((m) => [m.tmdbId, m]));
+
+  return items.map((item) => {
+    const linked = movieByTmdbId.get(item.tmdbId);
+    if (!linked) return item;
+    return {
+      ...item,
+      linkedMovieId: linked.id,
+      tvSeasons: linked.tvSeasons.map(deserializeTvSeason),
+    };
+  });
 }
 
 export interface CreateWatchlistInput {

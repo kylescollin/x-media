@@ -8,15 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CastList from "@/components/detail/CastList";
 import WatchlistSeasonTracker from "./WatchlistSeasonTracker";
+import SeasonTracker from "@/components/detail/SeasonTracker";
 import { useRemoveFromWatchlist, useUpdateWatchlistLabel } from "@/hooks/useWatchlist";
-import type { WatchlistItem } from "@/types";
+import type { WatchlistItem, Movie } from "@/types";
 
 interface WatchlistDetailModalProps {
   item: WatchlistItem | null;
+  linkedMovie?: Movie;
   onClose: () => void;
 }
 
-function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClose: () => void }) {
+function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: WatchlistItem; linkedMovie?: Movie; onClose: () => void }) {
   const { mutate: remove, isPending: isRemoving } = useRemoveFromWatchlist();
   const { mutate: updateLabel } = useUpdateWatchlistLabel();
 
@@ -188,11 +190,19 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
 
           <TabsContent value="seasons" className="mt-0">
             <div className="max-h-[28rem] overflow-y-auto scrollbar-thin">
-              <WatchlistSeasonTracker
-                watchlistItemId={item.id}
-                tmdbId={item.tmdbId}
-                seasons={item.tvSeasons}
-              />
+              {linkedMovie ? (
+                <SeasonTracker
+                  movieId={linkedMovie.id}
+                  tmdbId={linkedMovie.tmdbId}
+                  seasons={linkedMovie.tvSeasons ?? []}
+                />
+              ) : (
+                <WatchlistSeasonTracker
+                  watchlistItemId={item.id}
+                  tmdbId={item.tmdbId}
+                  seasons={item.tvSeasons}
+                />
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -209,7 +219,7 @@ function WatchlistDetailContent({ item, onClose }: { item: WatchlistItem; onClos
   );
 }
 
-export default function WatchlistDetailModal({ item, onClose }: WatchlistDetailModalProps) {
+export default function WatchlistDetailModal({ item, linkedMovie, onClose }: WatchlistDetailModalProps) {
   return (
     <Dialog.Root
       open={!!item}
@@ -235,7 +245,7 @@ export default function WatchlistDetailModal({ item, onClose }: WatchlistDetailM
             data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.97]
             duration-200"
         >
-          {item && <WatchlistDetailContent item={item} onClose={onClose} />}
+          {item && <WatchlistDetailContent item={item} linkedMovie={linkedMovie} onClose={onClose} />}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

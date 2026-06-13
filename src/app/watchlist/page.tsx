@@ -1,18 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { useMovies } from "@/hooks/useMovies";
 import WatchlistCard from "@/components/watchlist/WatchlistCard";
 import WatchlistDetailModal from "@/components/watchlist/WatchlistDetailModal";
 import AddToWatchlistDialog from "@/components/watchlist/AddToWatchlistDialog";
+import type { Movie } from "@/types";
+
+function isLinkedShowComplete(movie: Movie): boolean {
+  if (!movie.tvSeasons?.length) return false;
+  const total = movie.tvSeasons.reduce((s, season) => s + (season.episodeCount ?? 0), 0);
+  const watched = movie.tvSeasons.reduce((s, season) => s + season.watchedEpisodes, 0);
+  return total > 0 && watched >= total;
+}
 
 export default function WatchlistPage() {
   const { data: items, isLoading } = useWatchlist();
+  const { data: movies } = useMovies();
   const [viewerLabel, setViewerLabel] = useState<"mine" | "ours">("mine");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  const movieById = useMemo(() => {
+    const map = new Map<number, Movie>();
+    movies?.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [movies]);
+
   const filtered = items?.filter((i) => i.viewerLabel === viewerLabel) ?? [];
+
+  const visible = filtered.filter((item) => {
+    if (!item.linkedMovieId) return true;
+    const movie = movieById.get(item.linkedMovieId);
+    return !movie || !isLinkedShowComplete(movie);
+  });
+
   const selectedItem = items?.find((i) => i.id === selectedId) ?? null;
+  const linkedMovie = selectedItem?.linkedMovieId ? movieById.get(selectedItem.linkedMovieId) : undefined;
 
   return (
     <div className="px-6 sm:px-10 lg:px-16 py-8 sm:py-10">
@@ -52,7 +76,7 @@ export default function WatchlistPage() {
         </div>
       )}
 
-      {!isLoading && filtered.length === 0 && (
+      {!isLoading && visible.length === 0 && (
         <div className="flex flex-col items-center justify-center py-32 text-center">
           <p className="text-base font-semibold text-white/50">Nothing here yet</p>
           <p className="text-sm text-white/25 mt-1">
@@ -63,9 +87,9 @@ export default function WatchlistPage() {
         </div>
       )}
 
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && visible.length > 0 && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
-          {filtered.map((item, i) => (
+          {visible.map((item, i) => (
             <WatchlistCard
               key={item.id}
               item={item}
@@ -76,13 +100,13 @@ export default function WatchlistPage() {
         </div>
       )}
 
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && visible.length > 0 && (
         <p className="mt-8 text-center text-xs text-white/20">
-          {filtered.length} {filtered.length === 1 ? "title" : "titles"}
+          {visible.length} {visible.length === 1 ? "title" : "titles"}
         </p>
       )}
 
-      <WatchlistDetailModal item={selectedItem} onClose={() => setSelectedId(null)} />
+      <WatchlistDetailModal item={selectedItem} linkedMovie={linkedMovie} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

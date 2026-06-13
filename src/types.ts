@@ -85,6 +85,7 @@ export interface WatchlistItem {
   cast: CastMember[] | null;
   streamingInfo: StreamingService[] | null;
   tvSeasons: WatchlistTvSeason[] | null;
+  linkedMovieId?: number;
   viewerLabel: "mine" | "ours";
   priority: number;
   addedAt: string;
