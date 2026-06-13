@@ -20,7 +20,8 @@ model Movie {
   genres       String     // JSON array string (SQLite) → Json (Postgres)
   cast         String?    // JSON array, top 10 cast members
   directors    String?    // JSON array
-  mediaType    String     @default("movie") // "movie" | "tv"
+  mediaType       String     @default("movie") // "movie" | "tv"
+  numberOfSeasons Int?
   watched      Boolean    @default(true)
   watchedDate  DateTime?
   userRating   Int?       // 1-5 stars

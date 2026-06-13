@@ -41,6 +41,7 @@ export interface CreateMovieInput {
   cast?: string | null;
   directors?: string | null;
   mediaType?: string;
+  numberOfSeasons?: number | null;
   isFavorite?: boolean;
   watchedDate?: Date | null;
 }
@@ -60,6 +61,7 @@ export async function createMovie(data: CreateMovieInput): Promise<Movie> {
       cast: data.cast,
       directors: data.directors,
       mediaType: data.mediaType ?? "movie",
+      numberOfSeasons: data.numberOfSeasons ?? null,
       isFavorite: data.isFavorite ?? false,
       watchedDate: data.watchedDate,
     },
@@ -82,6 +84,7 @@ export async function upsertMovie(data: CreateMovieInput): Promise<Movie> {
       genres: data.genres,
       cast: data.cast,
       directors: data.directors,
+      numberOfSeasons: data.numberOfSeasons ?? undefined,
     },
     create: {
       tmdbId: data.tmdbId,
@@ -96,6 +99,7 @@ export async function upsertMovie(data: CreateMovieInput): Promise<Movie> {
       cast: data.cast,
       directors: data.directors,
       mediaType: data.mediaType ?? "movie",
+      numberOfSeasons: data.numberOfSeasons ?? null,
       isFavorite: data.isFavorite ?? false,
       watchedDate: data.watchedDate,
     },

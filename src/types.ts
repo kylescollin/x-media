@@ -32,6 +32,7 @@ export interface Movie {
   cast: CastMember[] | null;
   directors: string[] | null;
   mediaType: MediaType;
+  numberOfSeasons?: number | null;
   watched: boolean;
   watchedDate: string | null;
   userRating: number | null;
@@ -86,6 +87,7 @@ export interface WatchlistItem {
   streamingInfo: StreamingService[] | null;
   tvSeasons: WatchlistTvSeason[] | null;
   linkedMovieId?: number;
+  numberOfSeasons?: number;
   viewerLabel: "mine" | "ours";
   priority: number;
   addedAt: string;

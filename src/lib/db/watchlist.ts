@@ -25,6 +25,7 @@ export async function getWatchlistItems(): Promise<WatchlistItem[]> {
     return {
       ...item,
       linkedMovieId: linked.id,
+      numberOfSeasons: linked.numberOfSeasons ?? undefined,
       tvSeasons: linked.tvSeasons.map(deserializeTvSeason),
     };
   });

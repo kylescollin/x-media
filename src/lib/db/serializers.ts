@@ -20,6 +20,7 @@ export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): 
     cast: raw.cast ? safeParseJson<CastMember[]>(raw.cast, []) : null,
     directors: raw.directors ? safeParseJson<string[]>(raw.directors, []) : null,
     mediaType: raw.mediaType as "movie" | "tv",
+    numberOfSeasons: raw.numberOfSeasons ?? null,
     watched: raw.watched,
     watchedDate: raw.watchedDate ? raw.watchedDate.toISOString() : null,
     userRating: raw.userRating,

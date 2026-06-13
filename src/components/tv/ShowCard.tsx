@@ -20,7 +20,10 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
   const totalEpisodes = show.tvSeasons?.reduce((sum, s) => sum + (s.episodeCount ?? 0), 0) ?? 0;
   const watchedEpisodeCount = show.tvSeasons?.reduce((sum, s) => sum + s.watchedEpisodes, 0) ?? 0;
   const watchPct = totalEpisodes > 0 ? Math.round((watchedEpisodeCount / totalEpisodes) * 100) : 0;
-  const hasSeasons = (show.tvSeasons?.length ?? 0) > 0;
+  const trackedSeasonCount = show.tvSeasons?.length ?? 0;
+  const hasSeasons = trackedSeasonCount > 0;
+  const hasMoreSeasons =
+    show.numberOfSeasons != null && trackedSeasonCount > 0 && show.numberOfSeasons > trackedSeasonCount;
 
   function toggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
@@ -87,12 +90,14 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
         </div>
       )}
 
-      {/* Season progress chip — visible only for partial progress */}
-      {hasSeasons && watchPct > 0 && watchPct < 100 && (
+      {/* Season progress chip */}
+      {hasSeasons && (hasMoreSeasons || (watchPct > 0 && watchPct < 100)) && (
         <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
           <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
             <span className="text-[10px] font-medium text-white/70 truncate">
-              {watchPct}% watched
+              {hasMoreSeasons
+                ? `${trackedSeasonCount} / ${show.numberOfSeasons} seasons`
+                : `${watchPct}% watched`}
             </span>
           </div>
         </div>

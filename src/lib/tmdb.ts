@@ -90,5 +90,6 @@ export function extractMovieData(details: Record<string, unknown>, type: "movie"
     cast: JSON.stringify(cast),
     directors: JSON.stringify(directors),
     mediaType: type,
+    numberOfSeasons: type === "tv" ? ((details.number_of_seasons as number) ?? null) : null,
   };
 }

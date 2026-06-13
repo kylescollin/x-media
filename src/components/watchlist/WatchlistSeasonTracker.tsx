@@ -57,10 +57,32 @@ export default function WatchlistSeasonTracker({
             }
             return merged;
           });
+
+          // Pre-populate untracked seasons as stubs so WatchlistCard shows correct count
+          setLocalSeasons((prev) => {
+            const newEntries = (data.seasons as Array<Record<string, unknown>>)
+              .filter(
+                (s) =>
+                  (s.episode_count as number) > 0 &&
+                  !prev.find((ls) => ls.seasonNumber === (s.season_number as number))
+              )
+              .map((s) => ({
+                seasonNumber: s.season_number as number,
+                episodeCount: (s.episode_count as number) ?? null,
+                watchedEpisodes: 0,
+                airDate: (s.air_date as string) ?? null,
+                overview: (s.overview as string) ?? null,
+                episodes: null,
+              }));
+            if (newEntries.length === 0) return prev;
+            const merged = [...prev, ...newEntries];
+            updateSeasons({ id: watchlistItemId, seasons: merged });
+            return merged;
+          });
         }
       })
       .catch(() => {});
-  }, [tmdbId]);
+  }, [tmdbId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchSeasonEpisodes(seasonNumber: number) {
     setSeasonMeta((prev) => ({

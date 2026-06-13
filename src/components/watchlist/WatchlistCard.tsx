@@ -13,10 +13,15 @@ interface WatchlistCardProps {
 export default function WatchlistCard({ item, onSelect, priority = false }: WatchlistCardProps) {
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
 
+  const trackedCount = item.mediaType === "tv" ? (item.tvSeasons?.length ?? 0) : 0;
+  const hasMoreSeasons =
+    item.numberOfSeasons != null && trackedCount > 0 && item.numberOfSeasons > trackedCount;
+
   const tvPct = (() => {
-    if (item.mediaType !== "tv" || !item.tvSeasons?.length) return null;
-    const total = item.tvSeasons.reduce((s, season) => s + (season.episodeCount ?? 0), 0);
-    const watched = item.tvSeasons.reduce((s, season) => s + season.watchedEpisodes, 0);
+    if (item.mediaType !== "tv" || trackedCount === 0) return null;
+    if (hasMoreSeasons) return null; // show season count badge instead
+    const total = item.tvSeasons!.reduce((s, season) => s + (season.episodeCount ?? 0), 0);
+    const watched = item.tvSeasons!.reduce((s, season) => s + season.watchedEpisodes, 0);
     return total > 0 ? Math.round((watched / total) * 100) : 0;
   })();
 
@@ -41,12 +46,14 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
         draggable={false}
       />
 
-      {/* % complete chip — always visible for TV shows with tracked seasons */}
-      {tvPct !== null && (
+      {/* Progress chip — seasons count when untracked seasons exist, % otherwise */}
+      {(tvPct !== null || hasMoreSeasons) && (
         <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
           <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
             <span className="text-[10px] font-medium text-white/70 truncate">
-              {tvPct}% watched
+              {hasMoreSeasons
+                ? `${trackedCount} / ${item.numberOfSeasons} seasons`
+                : `${tvPct}% watched`}
             </span>
           </div>
         </div>
