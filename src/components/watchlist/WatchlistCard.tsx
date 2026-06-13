@@ -19,14 +19,17 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
     if (item.mediaType !== "tv" || trackedCount === 0) return null;
     const epCount = (s: WatchlistTvSeason) =>
       (s.episodeCount ?? 0) > 0 ? s.episodeCount! : (s.episodes?.length ?? 0);
-    const trackedTotal = item.tvSeasons!.reduce((sum, s) => sum + epCount(s), 0);
+    // Only seasons with actual episode data contribute to the total
+    const seasonsWithData = item.tvSeasons!.filter(s => epCount(s) > 0);
+    const dataCount = seasonsWithData.length;
+    if (dataCount === 0) return null;
+    const trackedTotal = seasonsWithData.reduce((sum, s) => sum + epCount(s), 0);
     const watched = item.tvSeasons!.reduce((sum, s) => sum + s.watchedEpisodes, 0);
-    if (trackedTotal === 0) return null;
-    const { numberOfSeasons } = item;
-    const total =
-      numberOfSeasons != null && numberOfSeasons > trackedCount
-        ? Math.round((trackedTotal / trackedCount) * numberOfSeasons)
-        : trackedTotal;
+    // Scale total up if there are seasons without episode data (0-count or untracked)
+    const totalSeasons = item.numberOfSeasons ?? trackedCount;
+    const total = dataCount < totalSeasons
+      ? Math.round((trackedTotal / dataCount) * totalSeasons)
+      : trackedTotal;
     return Math.round((watched / total) * 100);
   })();
 
