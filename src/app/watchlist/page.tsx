@@ -8,13 +8,6 @@ import WatchlistDetailModal from "@/components/watchlist/WatchlistDetailModal";
 import AddToWatchlistDialog from "@/components/watchlist/AddToWatchlistDialog";
 import type { Movie } from "@/types";
 
-function isLinkedShowComplete(movie: Movie): boolean {
-  if (!movie.tvSeasons?.length) return false;
-  const total = movie.tvSeasons.reduce((s, season) => s + (season.episodeCount ?? 0), 0);
-  const watched = movie.tvSeasons.reduce((s, season) => s + season.watchedEpisodes, 0);
-  return total > 0 && watched >= total;
-}
-
 export default function WatchlistPage() {
   const { data: items, isLoading } = useWatchlist();
   const { data: movies } = useMovies();
@@ -27,13 +20,7 @@ export default function WatchlistPage() {
     return map;
   }, [movies]);
 
-  const filtered = items?.filter((i) => i.viewerLabel === viewerLabel) ?? [];
-
-  const visible = filtered.filter((item) => {
-    if (!item.linkedMovieId) return true;
-    const movie = movieById.get(item.linkedMovieId);
-    return !movie || !isLinkedShowComplete(movie);
-  });
+  const visible = items?.filter((i) => i.viewerLabel === viewerLabel) ?? [];
 
   const selectedItem = items?.find((i) => i.id === selectedId) ?? null;
   const linkedMovie = selectedItem?.linkedMovieId ? movieById.get(selectedItem.linkedMovieId) : undefined;
