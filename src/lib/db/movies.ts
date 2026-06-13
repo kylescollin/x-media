@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getTmdbDetails } from "@/lib/tmdb";
 import { deserializeMovie, deserializeTvSeason } from "./serializers";
 import type { Movie, TvEpisode, TvSeason } from "@/types";
 
@@ -7,7 +8,35 @@ export async function getMovies(): Promise<Movie[]> {
     orderBy: { createdAt: "desc" },
     include: { tvSeasons: true },
   });
-  return rows.map(deserializeMovie);
+  const movies = rows.map(deserializeMovie);
+
+  // Backfill numberOfSeasons from TMDB for TV shows missing it (one-time per show).
+  const missing = movies.filter((m) => m.mediaType === "tv" && m.numberOfSeasons == null);
+  if (missing.length === 0) return movies;
+
+  const updates = await Promise.all(
+    missing.map(async (m) => {
+      try {
+        const details = await getTmdbDetails(m.tmdbId, "tv");
+        const n = details.number_of_seasons as number | undefined;
+        if (n != null) {
+          prisma.movie.update({ where: { id: m.id }, data: { numberOfSeasons: n } }).catch(() => {});
+          return { id: m.id, numberOfSeasons: n };
+        }
+      } catch { /* ignore transient TMDB errors */ }
+      return null;
+    })
+  );
+
+  const updateMap = new Map(
+    updates
+      .filter((u): u is { id: number; numberOfSeasons: number } => u != null)
+      .map((u) => [u.id, u.numberOfSeasons])
+  );
+
+  return updateMap.size === 0
+    ? movies
+    : movies.map((m) => (updateMap.has(m.id) ? { ...m, numberOfSeasons: updateMap.get(m.id) } : m));
 }
 
 export async function getMovie(id: number): Promise<Movie | null> {

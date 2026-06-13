@@ -17,13 +17,24 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
   const year = show.releaseDate ? new Date(show.releaseDate).getFullYear() : null;
   const { mutate: updateMovie } = useUpdateMovie();
 
-  const totalEpisodes = show.tvSeasons?.reduce((sum, s) => sum + (s.episodeCount ?? 0), 0) ?? 0;
-  const watchedEpisodeCount = show.tvSeasons?.reduce((sum, s) => sum + s.watchedEpisodes, 0) ?? 0;
-  const watchPct = totalEpisodes > 0 ? Math.round((watchedEpisodeCount / totalEpisodes) * 100) : 0;
   const trackedSeasonCount = show.tvSeasons?.length ?? 0;
   const hasSeasons = trackedSeasonCount > 0;
-  const hasMoreSeasons =
-    show.numberOfSeasons != null && trackedSeasonCount > 0 && show.numberOfSeasons > trackedSeasonCount;
+
+  const watchPct = (() => {
+    if (!hasSeasons) return 0;
+    const epCount = (s: NonNullable<typeof show.tvSeasons>[number]) =>
+      (s.episodeCount ?? 0) > 0 ? s.episodeCount! : (s.episodes?.length ?? 0);
+    const seasonsWithData = show.tvSeasons!.filter(s => epCount(s) > 0);
+    const dataCount = seasonsWithData.length;
+    if (dataCount === 0) return 0;
+    const trackedTotal = seasonsWithData.reduce((sum, s) => sum + epCount(s), 0);
+    const watched = show.tvSeasons!.reduce((sum, s) => sum + s.watchedEpisodes, 0);
+    const totalSeasons = show.numberOfSeasons ?? trackedSeasonCount;
+    const total = dataCount < totalSeasons
+      ? Math.round((trackedTotal / dataCount) * totalSeasons)
+      : trackedTotal;
+    return Math.round((watched / total) * 100);
+  })();
 
   function toggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
@@ -91,13 +102,11 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
       )}
 
       {/* Season progress chip */}
-      {hasSeasons && (hasMoreSeasons || (watchPct > 0 && watchPct < 100)) && (
+      {hasSeasons && watchPct > 0 && watchPct < 100 && (
         <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
           <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
             <span className="text-[10px] font-medium text-white/70 truncate">
-              {hasMoreSeasons
-                ? `${trackedSeasonCount} / ${show.numberOfSeasons} seasons`
-                : `${watchPct}% watched`}
+              {watchPct}% watched
             </span>
           </div>
         </div>
