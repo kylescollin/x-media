@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { tmdbImage } from "@/lib/tmdb";
-import type { WatchlistItem } from "@/types";
+import type { WatchlistItem, WatchlistTvSeason } from "@/types";
 
 interface WatchlistCardProps {
   item: WatchlistItem;
@@ -17,7 +17,7 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
 
   const tvPct = (() => {
     if (item.mediaType !== "tv" || trackedCount === 0) return null;
-    const epCount = (s: typeof item.tvSeasons![number]) =>
+    const epCount = (s: WatchlistTvSeason) =>
       (s.episodeCount ?? 0) > 0 ? s.episodeCount! : (s.episodes?.length ?? 0);
     const trackedTotal = item.tvSeasons!.reduce((sum, s) => sum + epCount(s), 0);
     const watched = item.tvSeasons!.reduce((sum, s) => sum + s.watchedEpisodes, 0);
