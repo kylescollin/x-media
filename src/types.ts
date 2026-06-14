@@ -104,6 +104,7 @@ export interface TmdbSearchResult {
   release_date?: string; // movies
   first_air_date?: string; // tv
   vote_average: number;
+  popularity?: number;
   genre_ids: number[];
   media_type?: string;
 }

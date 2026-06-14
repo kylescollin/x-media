@@ -51,7 +51,7 @@ export function useTmdbSearch(query: string, type: "movie" | "tv" | "both" = "bo
           const combined = [
             ...(moviesData.results ?? []).map((r: TmdbSearchResult) => ({ ...r, media_type: "movie" })),
             ...(tvData.results ?? []).map((r: TmdbSearchResult) => ({ ...r, media_type: "tv" })),
-          ].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
+          ].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
           setResults(combined);
         } else {
           const data = await fetch(`/api/tmdb/search?q=${encodeURIComponent(capturedQuery)}&type=${type}&page=1`).then((r) => r.json());
@@ -113,7 +113,7 @@ export function useTmdbSearch(query: string, type: "movie" | "tv" | "both" = "bo
           setTvPage(nextTvPage);
           newItems.push(...(tvData.results ?? []).map((r: TmdbSearchResult) => ({ ...r, media_type: "tv" })));
         }
-        setResults((prev) => [...prev, ...newItems].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0)));
+        setResults((prev) => [...prev, ...newItems].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)));
       } else {
         const currentPage = type === "movie" ? moviePage : tvPage;
         const totalPages = type === "movie" ? movieTotalPages : tvTotalPages;
