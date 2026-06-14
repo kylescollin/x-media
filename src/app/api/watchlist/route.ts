@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWatchlistItems, addToWatchlist } from "@/lib/db/watchlist";
 import { getTmdbDetails, extractMovieData } from "@/lib/tmdb";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function GET() {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const items = await getWatchlistItems();
     return NextResponse.json(items);
@@ -13,6 +16,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const body = await request.json();
     const { tmdbId, type = "movie", viewerLabel = "mine" } = body;

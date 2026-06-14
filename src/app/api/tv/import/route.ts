@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchTmdb, getTmdbDetails, getTmdbSeasonDetails, extractMovieData, extractSeasonEpisodes } from "@/lib/tmdb";
 import { upsertMovie, upsertTvSeason } from "@/lib/db/movies";
 import type { ParsedTvShow } from "@/lib/utils/parseTvImport";
+import { requireAuth } from "@/lib/auth-guard";
 
 export interface TvImportResultItem {
   showName: string;
@@ -34,6 +35,8 @@ async function batchProcess<T, R>(
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const body = await request.json();
     const shows: ParsedTvShow[] = body.shows;

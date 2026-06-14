@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTmdbSeasonDetails, extractSeasonEpisodes } from "@/lib/tmdb";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const { searchParams } = new URL(request.url);
     const tmdbId = searchParams.get("tmdbId");

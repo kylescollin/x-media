@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/providers/QueryProvider";
+import SessionProvider from "@/providers/SessionProvider";
 import Navbar from "@/components/layout/Navbar";
 import MobileNav from "@/components/layout/MobileNav";
 
@@ -31,11 +32,13 @@ export default function RootLayout({
       className={`${figtree.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <QueryProvider>
-          <Navbar />
-          <main className="flex-1 pb-14 sm:pb-0">{children}</main>
-          <MobileNav />
-        </QueryProvider>
+        <SessionProvider>
+          <QueryProvider>
+            <Navbar />
+            <main className="flex-1 pb-14 sm:pb-0">{children}</main>
+            <MobileNav />
+          </QueryProvider>
+        </SessionProvider>
       </body>
     </html>
   );

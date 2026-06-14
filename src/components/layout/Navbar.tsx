@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film, Tv, List, ShieldCheck } from "lucide-react";
+import { Film, Tv, List, ShieldCheck, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -14,6 +15,8 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+
+  if (pathname.startsWith("/auth")) return null;
 
   return (
     <header className="hidden sm:block sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
@@ -46,6 +49,15 @@ export default function Navbar() {
             );
           })}
         </div>
+
+        {/* Sign out */}
+        <button
+          onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+          className="ml-auto flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white/40 hover:text-white/80 transition-colors duration-150 cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Sign out</span>
+        </button>
       </nav>
     </header>
   );

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTmdbDetails, extractMovieData } from "@/lib/tmdb";
 import { rematchMovie, deleteMovie, getMovieByTmdbId } from "@/lib/db/movies";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const { id } = await params;
     const { tmdbId, mediaType } = await request.json();

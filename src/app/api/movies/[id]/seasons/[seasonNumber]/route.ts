@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { upsertTvSeason } from "@/lib/db/movies";
 import type { TvEpisode } from "@/types";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; seasonNumber: string }> }
 ) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const { id, seasonNumber } = await params;
     const movieId = Number(id);

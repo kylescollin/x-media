@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMovie, updateMovie, deleteMovie } from "@/lib/db/movies";
+import { requireAuth } from "@/lib/auth-guard";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   const { id } = await params;
   const movie = await getMovie(Number(id));
   if (!movie) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -9,6 +12,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const { id } = await params;
     const body = await request.json();
@@ -30,6 +35,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAuth();
+  if (unauthorized) return unauthorized;
   try {
     const { id } = await params;
     await deleteMovie(Number(id));
