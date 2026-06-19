@@ -1,31 +1,24 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMovies } from "@/hooks/useMovies";
 import MovieCard from "./MovieCard";
 import MovieCardSkeleton from "./MovieCardSkeleton";
-import MovieSearch from "./MovieSearch";
-import MovieFilters from "./MovieFilters";
+import MovieFilters, { type SortOption } from "./MovieFilters";
 import MovieDetailModal from "./MovieDetailModal";
-import { cn } from "@/lib/utils";
 import type { Movie } from "@/types";
-
-type SortOption = "title" | "added" | "rating" | "year";
 
 export default function MovieGrid() {
   const { data: movies, isLoading } = useMovies();
 
   // Filter + sort state
   const [search, setSearch] = useState("");
-  const [filterGenre, setFilterGenre] = useState<string | null>(null);
+  const [filterGenres, setFilterGenres] = useState<string[]>([]);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [filterValidated, setFilterValidated] = useState<boolean | null>(null);
   const [filterMyRating, setFilterMyRating] = useState<number | "unrated" | null>(null);
   const [filterMinScore, setFilterMinScore] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("title"); // A-Z default
-  const [showFilters, setShowFilters] = useState(false);
 
   // Modal state — no page navigation
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -43,13 +36,6 @@ export default function MovieGrid() {
     return Array.from(set).sort();
   }, [moviesList]);
 
-  const activeFilterCount =
-    (filterGenre ? 1 : 0) +
-    (filterFavorites ? 1 : 0) +
-    (filterValidated !== null ? 1 : 0) +
-    (filterMyRating !== null ? 1 : 0) +
-    (filterMinScore !== null ? 1 : 0);
-
   const filtered = useMemo(() => {
     let list: Movie[] = [...moviesList];
 
@@ -57,8 +43,10 @@ export default function MovieGrid() {
       const q = search.toLowerCase();
       list = list.filter((m) => m.title.toLowerCase().includes(q));
     }
-    if (filterGenre) {
-      list = list.filter((m) => m.genres.some((g) => g.name === filterGenre));
+    if (filterGenres.length > 0) {
+      list = list.filter((m) =>
+        filterGenres.every((fg) => m.genres.some((g) => g.name === fg))
+      );
     }
     if (filterFavorites) {
       list = list.filter((m) => m.isFavorite);
@@ -83,59 +71,19 @@ export default function MovieGrid() {
     });
 
     return list;
-  }, [moviesList, search, filterGenre, filterFavorites, filterValidated, filterMyRating, filterMinScore, sortBy]);
+  }, [moviesList, search, filterGenres, filterFavorites, filterValidated, filterMyRating, filterMinScore, sortBy]);
 
   return (
     <>
       <div className="flex flex-col gap-4">
 
-        {/* ── Toolbar ──────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <MovieSearch value={search} onChange={setSearch} />
-
-          {/* Filters toggle */}
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={cn(
-              "flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium border transition-all duration-150 shrink-0",
-              showFilters || activeFilterCount > 0
-                ? "border-white/20 bg-white/8 text-white"
-                : "border-white/8 text-white/40 hover:border-white/15 hover:text-white/70"
-            )}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-black">
-                {activeFilterCount}
-              </span>
-            )}
-            {showFilters ? (
-              <ChevronUp className="h-3 w-3 ml-0.5" />
-            ) : (
-              <ChevronDown className="h-3 w-3 ml-0.5" />
-            )}
-          </button>
-
-          {/* Sort — always visible */}
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <SelectTrigger className="h-9 w-36 text-xs border-white/8 bg-white/5 text-white/70 hover:text-white shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="title">Title A–Z</SelectItem>
-              <SelectItem value="year">Release Year</SelectItem>
-              <SelectItem value="rating">My Rating</SelectItem>
-              <SelectItem value="added">Date Added</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* ── Collapsible filter panel ──────────────────────── */}
+        {/* ── Filter bar ───────────────────────────────────────── */}
         <MovieFilters
-          genres={allGenres}
-          activeGenre={filterGenre}
-          onGenreChange={setFilterGenre}
+          search={search}
+          onSearchChange={setSearch}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          yearSortLabel="Release Year"
           favoritesOnly={filterFavorites}
           onFavoritesChange={setFilterFavorites}
           filterValidated={filterValidated}
@@ -144,7 +92,9 @@ export default function MovieGrid() {
           onMyRatingChange={setFilterMyRating}
           filterMinScore={filterMinScore}
           onMinScoreChange={setFilterMinScore}
-          visible={showFilters}
+          genres={allGenres}
+          selectedGenres={filterGenres}
+          onGenresChange={setFilterGenres}
         />
 
         {/* ── Skeleton grid ─────────────────────────────────── */}

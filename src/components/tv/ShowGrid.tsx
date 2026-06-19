@@ -1,18 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMovies } from "@/hooks/useMovies";
 import ShowCard from "./ShowCard";
 import MovieCardSkeleton from "@/components/library/MovieCardSkeleton";
-import MovieSearch from "@/components/library/MovieSearch";
-import MovieFilters from "@/components/library/MovieFilters";
+import MovieFilters, { type SortOption } from "@/components/library/MovieFilters";
 import MovieDetailModal from "@/components/library/MovieDetailModal";
-import { cn } from "@/lib/utils";
 import type { Movie } from "@/types";
-
-type SortOption = "title" | "added" | "rating" | "year";
 
 export default function ShowGrid() {
   const { data: allMovies, isLoading } = useMovies();
@@ -21,13 +15,12 @@ export default function ShowGrid() {
   const shows = useMemo(() => allMovies?.filter((m) => m.mediaType === "tv") ?? [], [allMovies]);
 
   const [search, setSearch] = useState("");
-  const [filterGenre, setFilterGenre] = useState<string | null>(null);
+  const [filterGenres, setFilterGenres] = useState<string[]>([]);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [filterValidated, setFilterValidated] = useState<boolean | null>(null);
   const [filterMyRating, setFilterMyRating] = useState<number | "unrated" | null>(null);
   const [filterMinScore, setFilterMinScore] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("title");
-  const [showFilters, setShowFilters] = useState(false);
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selectedShow = useMemo(
@@ -41,21 +34,16 @@ export default function ShowGrid() {
     return Array.from(set).sort();
   }, [shows]);
 
-  const activeFilterCount =
-    (filterGenre ? 1 : 0) +
-    (filterFavorites ? 1 : 0) +
-    (filterValidated !== null ? 1 : 0) +
-    (filterMyRating !== null ? 1 : 0) +
-    (filterMinScore !== null ? 1 : 0);
-
   const filtered = useMemo(() => {
     let list: Movie[] = [...shows];
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((s) => s.title.toLowerCase().includes(q));
     }
-    if (filterGenre) {
-      list = list.filter((s) => s.genres.some((g) => g.name === filterGenre));
+    if (filterGenres.length > 0) {
+      list = list.filter((s) =>
+        filterGenres.every((fg) => s.genres.some((g) => g.name === fg))
+      );
     }
     if (filterFavorites) {
       list = list.filter((s) => s.isFavorite);
@@ -78,50 +66,17 @@ export default function ShowGrid() {
       return 0;
     });
     return list;
-  }, [shows, search, filterGenre, filterFavorites, filterValidated, filterMyRating, filterMinScore, sortBy]);
+  }, [shows, search, filterGenres, filterFavorites, filterValidated, filterMyRating, filterMinScore, sortBy]);
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <MovieSearch value={search} onChange={setSearch} />
-
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={cn(
-              "flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium border transition-all duration-150 shrink-0",
-              showFilters || activeFilterCount > 0
-                ? "border-white/20 bg-white/8 text-white"
-                : "border-white/8 text-white/40 hover:border-white/15 hover:text-white/70"
-            )}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-black">
-                {activeFilterCount}
-              </span>
-            )}
-            {showFilters ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
-          </button>
-
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <SelectTrigger className="h-9 w-36 text-xs border-white/8 bg-white/5 text-white/70 hover:text-white shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="title">Title A–Z</SelectItem>
-              <SelectItem value="year">First Air Year</SelectItem>
-              <SelectItem value="rating">My Rating</SelectItem>
-              <SelectItem value="added">Date Added</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <MovieFilters
-          genres={allGenres}
-          activeGenre={filterGenre}
-          onGenreChange={setFilterGenre}
+          search={search}
+          onSearchChange={setSearch}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          yearSortLabel="First Air Year"
           favoritesOnly={filterFavorites}
           onFavoritesChange={setFilterFavorites}
           filterValidated={filterValidated}
@@ -130,7 +85,9 @@ export default function ShowGrid() {
           onMyRatingChange={setFilterMyRating}
           filterMinScore={filterMinScore}
           onMinScoreChange={setFilterMinScore}
-          visible={showFilters}
+          genres={allGenres}
+          selectedGenres={filterGenres}
+          onGenresChange={setFilterGenres}
         />
 
         {isLoading && (
