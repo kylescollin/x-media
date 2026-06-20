@@ -101,13 +101,21 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
         </div>
       )}
 
-      {/* Season progress chip */}
+      {/* Season progress bar */}
       {hasSeasons && watchPct > 0 && watchPct < 100 && (
         <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
-          <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
-            <span className="text-[10px] font-medium text-white/70 truncate">
-              {watchPct}% watched
-            </span>
+          <div
+            className="h-1 w-full rounded-full bg-black/50 backdrop-blur-sm overflow-hidden"
+            role="progressbar"
+            aria-valuenow={watchPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${watchPct}% watched`}
+          >
+            <div
+              className="h-full rounded-full bg-amber-400 transition-[width] duration-300"
+              style={{ width: `${watchPct}%` }}
+            />
           </div>
         </div>
       )}
