@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StarRating from "./StarRating";
 import CastList from "./CastList";
 import SeasonTracker from "./SeasonTracker";
+import WhereToWatch from "./WhereToWatch";
 import FavoriteToggle from "@/components/library/FavoriteToggle";
 import WatchedDateInput from "./WatchedDateInput";
 import RematchPanel from "@/components/validate/RematchPanel";
@@ -195,6 +196,9 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
           <TabsTrigger value="cast" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
             Cast
           </TabsTrigger>
+          <TabsTrigger value="watch" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+            Watch
+          </TabsTrigger>
           {movie.mediaType === "tv" && (
             <TabsTrigger value="seasons" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
               Seasons
@@ -223,6 +227,12 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
         <TabsContent value="cast" className="mt-0">
           <div className="max-h-52 overflow-y-auto scrollbar-thin">
             <CastList cast={movie.cast ?? []} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="watch" className="mt-0">
+          <div className="max-h-52 overflow-y-auto scrollbar-thin">
+            <WhereToWatch tmdbId={movie.tmdbId} mediaType={movie.mediaType} />
           </div>
         </TabsContent>
 
