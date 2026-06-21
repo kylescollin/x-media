@@ -48,3 +48,6 @@ scripts/token.json
 
 # Playwright browser session (contains Google login cookies)
 scripts/.browser-session/
+
+# Mobile-nav test session (contains app login cookies)
+scripts/.nav-session/

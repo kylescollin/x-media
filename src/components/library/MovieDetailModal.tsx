@@ -22,7 +22,7 @@ export default function MovieDetailModal({ movie, onClose }: MovieDetailModalPro
         <Dialog.Backdrop
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm
             data-open:animate-in data-open:fade-in-0
-            data-closed:animate-out data-closed:fade-out-0
+            data-closed:animate-out data-closed:fade-out-0 data-closed:pointer-events-none
             duration-200"
         />
 

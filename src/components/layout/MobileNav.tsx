@@ -24,7 +24,7 @@ export default function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-black/80 backdrop-blur-md sm:hidden">
-      <div className="flex items-center justify-around h-14">
+      <div className="flex items-stretch justify-around h-14">
         {links.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
@@ -32,7 +32,8 @@ export default function MobileNav() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center gap-1 flex-1 py-2 transition-colors",
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px]",
+                "touch-manipulation select-none transition-colors active:bg-white/10 active:text-white",
                 active ? "text-white" : "text-white/35 hover:text-white/70"
               )}
             >
@@ -44,7 +45,8 @@ export default function MobileNav() {
         <Link
           href="/settings"
           className={cn(
-            "flex flex-col items-center gap-1 flex-1 py-2 transition-colors",
+            "flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px]",
+            "touch-manipulation select-none transition-colors active:bg-white/10 active:text-white",
             settingsActive ? "text-white" : "text-white/35 hover:text-white/70"
           )}
         >

@@ -41,7 +41,7 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150 touch-manipulation select-none active:bg-white/5",
                   active
                     ? "text-white"
                     : "text-white/40 hover:text-white/80"
@@ -58,7 +58,7 @@ export default function Navbar() {
         <Link
           href="/settings"
           className={cn(
-            "ml-auto flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium transition-colors duration-150",
+            "ml-auto flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium transition-colors duration-150 touch-manipulation select-none",
             pathname.startsWith("/settings")
               ? "bg-white/10 text-white"
               : "text-white/60 hover:bg-white/5 hover:text-white"
