@@ -31,7 +31,7 @@ export default function ExportButton({ type }: ExportButtonProps) {
       className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/15 text-white/90 text-sm font-semibold h-8 px-3 hover:bg-white/8 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
       <Download className="h-3.5 w-3.5" />
-      <span>Export</span>
+      <span>Export {type === "movie" ? "Movies" : "TV"}</span>
     </button>
   );
 }
