@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film, Tv, List, ShieldCheck, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Film, Tv, List, ShieldCheck } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import Avatar from "@/components/settings/Avatar";
 
 const links = [
   { href: "/library", label: "Movies", icon: Film },
@@ -15,6 +16,9 @@ const links = [
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const settingsActive = pathname.startsWith("/settings");
 
   if (pathname.startsWith("/auth")) return null;
 
@@ -37,13 +41,25 @@ export default function MobileNav() {
             </Link>
           );
         })}
-        <button
-          onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-          className="flex flex-col items-center gap-1 flex-1 py-2 transition-colors text-white/35 hover:text-white/70 cursor-pointer"
+        <Link
+          href="/settings"
+          className={cn(
+            "flex flex-col items-center gap-1 flex-1 py-2 transition-colors",
+            settingsActive ? "text-white" : "text-white/35 hover:text-white/70"
+          )}
         >
-          <LogOut className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Sign out</span>
-        </button>
+          <Avatar
+            image={user?.image}
+            name={user?.name}
+            email={user?.email}
+            size={20}
+            className={cn(
+              "ring-1 ring-transparent",
+              settingsActive && "ring-white/70"
+            )}
+          />
+          <span className="text-[10px] font-medium">You</span>
+        </Link>
       </div>
     </nav>
   );

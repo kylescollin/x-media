@@ -1,6 +1,5 @@
 import ShowGrid from "@/components/tv/ShowGrid";
 import AddToLibraryDialog from "@/components/library/AddToLibraryDialog";
-import ExportButton from "@/components/library/ExportButton";
 
 export const metadata = { title: "TV Shows — Kyle's Media" };
 
@@ -10,7 +9,6 @@ export default function TvPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-4xl font-bold tracking-tight text-white">TV Shows</h1>
         <div className="flex items-center gap-2">
-          <ExportButton type="tv" />
           <AddToLibraryDialog type="tv" />
         </div>
       </div>

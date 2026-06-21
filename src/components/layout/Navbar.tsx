@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film, Tv, List, ShieldCheck, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Film, Tv, List, ShieldCheck } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import Avatar from "@/components/settings/Avatar";
 
 const links = [
   { href: "/library", label: "Movies", icon: Film },
@@ -15,6 +16,9 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const firstName = user?.name?.split(" ")[0];
 
   if (pathname.startsWith("/auth")) return null;
 
@@ -50,14 +54,24 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Sign out */}
-        <button
-          onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-          className="ml-auto flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white/40 hover:text-white/80 transition-colors duration-150 cursor-pointer"
+        {/* Profile */}
+        <Link
+          href="/settings"
+          className={cn(
+            "ml-auto flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium transition-colors duration-150",
+            pathname.startsWith("/settings")
+              ? "bg-white/10 text-white"
+              : "text-white/60 hover:bg-white/5 hover:text-white"
+          )}
         >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">Sign out</span>
-        </button>
+          <Avatar
+            image={user?.image}
+            name={user?.name}
+            email={user?.email}
+            size={32}
+          />
+          {firstName && <span className="hidden sm:inline">{firstName}</span>}
+        </Link>
       </nav>
     </header>
   );
