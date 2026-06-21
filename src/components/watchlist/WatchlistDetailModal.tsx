@@ -7,6 +7,7 @@ import { tmdbImage } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CastList from "@/components/detail/CastList";
+import WhereToWatch from "@/components/detail/WhereToWatch";
 import WatchlistSeasonTracker from "./WatchlistSeasonTracker";
 import SeasonTracker from "@/components/detail/SeasonTracker";
 import { useRemoveFromWatchlist, useUpdateWatchlistLabel } from "@/hooks/useWatchlist";
@@ -167,6 +168,9 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
             <TabsTrigger value="cast" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
               Cast
             </TabsTrigger>
+            <TabsTrigger value="watch" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Watch
+            </TabsTrigger>
             <TabsTrigger value="seasons" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
               Seasons
             </TabsTrigger>
@@ -185,6 +189,12 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
           <TabsContent value="cast" className="mt-0">
             <div className="max-h-52 overflow-y-auto scrollbar-thin">
               <CastList cast={item.cast ?? []} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="watch" className="mt-0">
+            <div className="max-h-52 overflow-y-auto scrollbar-thin">
+              <WhereToWatch tmdbId={item.tmdbId} mediaType={item.mediaType} />
             </div>
           </TabsContent>
 
@@ -207,13 +217,32 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
           </TabsContent>
         </Tabs>
       ) : (
-        <div className="px-5 sm:px-6 pt-4 pb-8">
-          {item.overview ? (
-            <p className="text-sm leading-relaxed text-white/60">{item.overview}</p>
-          ) : (
-            <p className="text-sm text-white/35">No overview available.</p>
-          )}
-        </div>
+        <Tabs defaultValue="overview" className="px-5 sm:px-6 pt-2 pb-8">
+          <TabsList className="mb-4 bg-transparent gap-1 -ml-1">
+            <TabsTrigger value="overview" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="watch" className="text-sm data-active:text-white text-white/40 px-3 py-1.5">
+              Watch
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-0">
+            <div className="max-h-40 overflow-y-auto scrollbar-thin">
+              {item.overview ? (
+                <p className="text-sm leading-relaxed text-white/60">{item.overview}</p>
+              ) : (
+                <p className="text-sm text-white/35">No overview available.</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="watch" className="mt-0">
+            <div className="max-h-52 overflow-y-auto scrollbar-thin">
+              <WhereToWatch tmdbId={item.tmdbId} mediaType={item.mediaType} />
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

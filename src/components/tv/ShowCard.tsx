@@ -5,6 +5,8 @@ import { Star } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
 import { useUpdateMovie } from "@/hooks/useMovies";
 import { cn } from "@/lib/utils";
+import { tvWatchedPercent } from "@/lib/utils/tvProgress";
+import MediaProgressBar from "@/components/detail/MediaProgressBar";
 import type { Movie } from "@/types";
 
 interface ShowCardProps {
@@ -17,24 +19,7 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
   const year = show.releaseDate ? new Date(show.releaseDate).getFullYear() : null;
   const { mutate: updateMovie } = useUpdateMovie();
 
-  const trackedSeasonCount = show.tvSeasons?.length ?? 0;
-  const hasSeasons = trackedSeasonCount > 0;
-
-  const watchPct = (() => {
-    if (!hasSeasons) return 0;
-    const epCount = (s: NonNullable<typeof show.tvSeasons>[number]) =>
-      (s.episodeCount ?? 0) > 0 ? s.episodeCount! : (s.episodes?.length ?? 0);
-    const seasonsWithData = show.tvSeasons!.filter(s => epCount(s) > 0);
-    const dataCount = seasonsWithData.length;
-    if (dataCount === 0) return 0;
-    const trackedTotal = seasonsWithData.reduce((sum, s) => sum + epCount(s), 0);
-    const watched = show.tvSeasons!.reduce((sum, s) => sum + s.watchedEpisodes, 0);
-    const totalSeasons = show.numberOfSeasons ?? trackedSeasonCount;
-    const total = dataCount < totalSeasons
-      ? Math.round((trackedTotal / dataCount) * totalSeasons)
-      : trackedTotal;
-    return Math.round((watched / total) * 100);
-  })();
+  const watchPct = tvWatchedPercent(show.tvSeasons, show.numberOfSeasons);
 
   function toggleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
@@ -102,22 +87,8 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
       )}
 
       {/* Season progress bar */}
-      {hasSeasons && watchPct > 0 && watchPct < 100 && (
-        <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
-          <div
-            className="h-1 w-full rounded-full bg-black/50 backdrop-blur-sm overflow-hidden"
-            role="progressbar"
-            aria-valuenow={watchPct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`${watchPct}% watched`}
-          >
-            <div
-              className="h-full rounded-full bg-amber-400 transition-[width] duration-300"
-              style={{ width: `${watchPct}%` }}
-            />
-          </div>
-        </div>
+      {watchPct !== null && watchPct > 0 && watchPct < 100 && (
+        <MediaProgressBar pct={watchPct} />
       )}
     </div>
   );

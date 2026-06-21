@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { tmdbImage } from "@/lib/tmdb";
-import type { WatchlistItem, WatchlistTvSeason } from "@/types";
+import { tvWatchedPercent } from "@/lib/utils/tvProgress";
+import MediaProgressBar from "@/components/detail/MediaProgressBar";
+import type { WatchlistItem } from "@/types";
 
 interface WatchlistCardProps {
   item: WatchlistItem;
@@ -13,25 +15,10 @@ interface WatchlistCardProps {
 export default function WatchlistCard({ item, onSelect, priority = false }: WatchlistCardProps) {
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
 
-  const trackedCount = item.mediaType === "tv" ? (item.tvSeasons?.length ?? 0) : 0;
-
-  const tvPct = (() => {
-    if (item.mediaType !== "tv" || trackedCount === 0) return null;
-    const epCount = (s: WatchlistTvSeason) =>
-      (s.episodeCount ?? 0) > 0 ? s.episodeCount! : (s.episodes?.length ?? 0);
-    // Only seasons with actual episode data contribute to the total
-    const seasonsWithData = item.tvSeasons!.filter(s => epCount(s) > 0);
-    const dataCount = seasonsWithData.length;
-    if (dataCount === 0) return null;
-    const trackedTotal = seasonsWithData.reduce((sum, s) => sum + epCount(s), 0);
-    const watched = item.tvSeasons!.reduce((sum, s) => sum + s.watchedEpisodes, 0);
-    // Scale total up if there are seasons without episode data (0-count or untracked)
-    const totalSeasons = item.numberOfSeasons ?? trackedCount;
-    const total = dataCount < totalSeasons
-      ? Math.round((trackedTotal / dataCount) * totalSeasons)
-      : trackedTotal;
-    return Math.round((watched / total) * 100);
-  })();
+  const tvPct =
+    item.mediaType === "tv"
+      ? tvWatchedPercent(item.tvSeasons, item.numberOfSeasons)
+      : null;
 
   return (
     <div
@@ -54,15 +41,9 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
         draggable={false}
       />
 
-      {/* Progress chip */}
+      {/* Season progress bar */}
       {tvPct !== null && tvPct > 0 && tvPct < 100 && (
-        <div className="absolute bottom-2 left-2 right-2 opacity-100 group-hover:opacity-0 transition-opacity duration-200">
-          <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-sm px-1.5 py-0.5 w-fit max-w-full">
-            <span className="text-[10px] font-medium text-white/70 truncate">
-              {tvPct}% watched
-            </span>
-          </div>
-        </div>
+        <MediaProgressBar pct={tvPct} />
       )}
 
       {/* Hover shadow ring */}
