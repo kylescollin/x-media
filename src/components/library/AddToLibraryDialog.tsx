@@ -1,150 +1,39 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { Plus, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { tmdbImage } from "@/lib/tmdb";
-import { useTmdbSearch } from "@/hooks/useTmdbSearch";
-import { useAddMovie } from "@/hooks/useMovies";
-
-function preventInputZoom() {
-  document.querySelector('meta[name="viewport"]')
-    ?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
-}
-
-function restoreInputZoom() {
-  document.querySelector('meta[name="viewport"]')
-    ?.setAttribute('content', 'width=device-width, initial-scale=1');
-}
+import { useMemo } from "react";
+import AddItemDialog from "@/components/shared/AddItemDialog";
+import { useMovies, useAddMovie } from "@/hooks/useMovies";
+import type { Movie } from "@/types";
 
 interface AddToLibraryDialogProps {
   type: "movie" | "tv";
 }
 
 export default function AddToLibraryDialog({ type }: AddToLibraryDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, type);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting && hasMore && !isLoadingMore) loadMore(); },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasMore, isLoadingMore, loadMore]);
-  const { mutate: addMovie, isPending } = useAddMovie();
-
-  // Focus input after dialog animation completes to avoid iOS transform-zoom bug
-  useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 150);
-    return () => clearTimeout(t);
-  }, [open]);
-
-  // iOS-safe body scroll lock — overflow:hidden alone doesn't work on Safari
-  useEffect(() => {
-    if (!open) return;
-    const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
-    };
-  }, [open]);
-
+  const { data: movies = [] } = useMovies();
+  const { mutate: addMovie } = useAddMovie();
   const label = type === "movie" ? "movie" : "TV show";
 
-  function handleSelect(id: number) {
-    addMovie(
-      { tmdbId: id, type },
-      {
-        onSuccess: () => {
-          setOpen(false);
-          setQuery("");
-        },
-      }
-    );
-  }
+  const existingByTmdbId = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const m of movies) {
+      if (m.mediaType === type) map.set(m.tmdbId, m.id);
+    }
+    return map;
+  }, [movies, type]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-white text-black text-sm font-semibold h-8 px-3 hover:bg-white/90 transition-colors">
-        <Plus className="h-3.5 w-3.5" />
-        <span>Add</span>
-      </DialogTrigger>
-      <DialogContent className="max-w-md bg-[oklch(0.10_0_0)] border-white/10 p-0 overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-4 border-b border-white/8">
-          <DialogTitle className="text-base font-semibold text-white">Add {label}</DialogTitle>
-        </DialogHeader>
-
-        <div className="px-4 pt-4 pb-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search ${label}s…`}
-              onFocus={preventInputZoom}
-              onBlur={restoreInputZoom}
-              className="w-full rounded-lg bg-white/6 border border-white/10 text-base sm:text-sm text-white placeholder:text-white/30 pl-9 pr-3 py-2 outline-none focus:border-white/25 transition-colors"
-            />
-          </div>
-        </div>
-
-        <div className="max-h-72 overflow-y-auto overscroll-contain scrollbar-thin px-2 pb-3 space-y-0.5">
-          {isLoading && (
-            <p className="text-sm text-white/35 px-3 py-6 text-center">Searching…</p>
-          )}
-          {!isLoading && query.length >= 2 && results.length === 0 && (
-            <p className="text-sm text-white/35 px-3 py-6 text-center">No results found</p>
-          )}
-          {results.map((result) => {
-            const title = result.title ?? result.name ?? "";
-            const year = (result.release_date ?? result.first_air_date ?? "").slice(0, 4);
-            return (
-              <button
-                key={`${type}-${result.id}`}
-                onClick={() => handleSelect(result.id)}
-                disabled={isPending}
-                className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-white/6 transition-colors"
-              >
-                <div className="relative h-12 w-8 flex-shrink-0 rounded overflow-hidden bg-white/8">
-                  {result.poster_path ? (
-                    <Image
-                      src={tmdbImage(result.poster_path, "w154")}
-                      alt={title}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-white/8" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white truncate">{title}</p>
-                  {year && <span className="text-xs text-white/40 mt-0.5 block">{year}</span>}
-                </div>
-              </button>
-            );
-          })}
-          <div ref={sentinelRef} className="py-1">
-            {isLoadingMore && <p className="text-xs text-white/30 text-center py-2">Loading more…</p>}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <AddItemDialog
+      title={`Add ${label}`}
+      searchType={type}
+      searchPlaceholder={`Search ${label}s…`}
+      getExistingId={(tmdbId) => existingByTmdbId.get(tmdbId)}
+      onAdd={(result, cb) => {
+        addMovie(
+          { tmdbId: result.id, type },
+          { onSuccess: (movie: Movie) => cb.onSuccess(movie.id), onError: cb.onError }
+        );
+      }}
+    />
   );
 }
