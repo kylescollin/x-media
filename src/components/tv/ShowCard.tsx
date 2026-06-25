@@ -33,6 +33,7 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
       role="button"
       tabIndex={0}
       className="group relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-[oklch(0.14_0_0)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+        [content-visibility:auto] [contain-intrinsic-size:auto_300px]
         transition-transform duration-300 ease-out
         hover:scale-[1.04] hover:z-10"
       aria-label={`View details for ${show.title}`}

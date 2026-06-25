@@ -14,7 +14,7 @@ import WhereToWatch from "./WhereToWatch";
 import FavoriteToggle from "@/components/library/FavoriteToggle";
 import WatchedDateInput from "./WatchedDateInput";
 import RematchPanel from "@/components/validate/RematchPanel";
-import { useDeleteMovie, useUpdateMovie } from "@/hooks/useMovies";
+import { useDeleteMovie, useUpdateMovie, useMovieDetail } from "@/hooks/useMovies";
 import type { Movie } from "@/types";
 
 interface MovieDetailContentProps {
@@ -26,6 +26,10 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
   const [rematchOpen, setRematchOpen] = useState(false);
   const { mutate: deleteMovie } = useDeleteMovie();
   const { mutate: updateMovie } = useUpdateMovie();
+  // The grid payload omits per-episode data; load the full record (with episodes)
+  // on demand for TV shows so the season tracker can render episode checkboxes.
+  const { data: detail } = useMovieDetail(movie.id, movie.mediaType === "tv");
+  const seasons = detail?.tvSeasons ?? movie.tvSeasons ?? [];
 
   function handleDelete() {
     deleteMovie(movie.id);
@@ -239,7 +243,7 @@ export default function MovieDetailContent({ movie, onClose }: MovieDetailConten
         {movie.mediaType === "tv" && (
           <TabsContent value="seasons" className="mt-0">
             <div className="max-h-[28rem] overflow-y-auto scrollbar-thin">
-              <SeasonTracker movieId={movie.id} tmdbId={movie.tmdbId} seasons={movie.tvSeasons ?? []} />
+              <SeasonTracker movieId={movie.id} tmdbId={movie.tmdbId} seasons={seasons} />
             </div>
           </TabsContent>
         )}

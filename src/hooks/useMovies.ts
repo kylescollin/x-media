@@ -14,6 +14,23 @@ export function useMovies() {
   });
 }
 
+/**
+ * Fetches the full movie/show — including per-episode data, which the list
+ * query (`/api/movies`) omits to keep the grid payload small. Used by the
+ * detail modal to load episodes on demand when a title is opened.
+ */
+export function useMovieDetail(id: number, enabled = true) {
+  return useQuery<Movie>({
+    queryKey: ["movie", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/movies/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch movie detail");
+      return res.json();
+    },
+    enabled: enabled && id > 0,
+  });
+}
+
 export function useDeleteMovie() {
   const queryClient = useQueryClient();
 

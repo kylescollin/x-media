@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMovies, upsertMovie } from "@/lib/db/movies";
+import { getMoviesList, upsertMovie } from "@/lib/db/movies";
 import { getTmdbDetails, extractMovieData } from "@/lib/tmdb";
 import { requireAuth } from "@/lib/auth-guard";
 
@@ -7,7 +7,7 @@ export async function GET() {
   const unauthorized = await requireAuth();
   if (unauthorized) return unauthorized;
   try {
-    const movies = await getMovies();
+    const movies = await getMoviesList();
     return NextResponse.json(movies);
   } catch (err) {
     console.error("[movies GET]", err);

@@ -3,9 +3,29 @@
  * When migrating to Postgres, switch schema fields to Json type and remove these.
  */
 import type { Movie, WatchlistItem, WatchlistTvSeason, Genre, CastMember, StreamingService, TvSeason, TvEpisode } from "@/types";
-import type { Movie as PrismaMovie, WatchlistItem as PrismaWatchlistItem, TvSeason as PrismaTvSeason } from "@/generated/prisma/client";
+import type { Movie as PrismaMovie, WatchlistItem as PrismaWatchlistItem } from "@/generated/prisma/client";
 
-export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): Movie {
+/**
+ * Season row shape accepted by the deserializers. Episodes are optional so the
+ * same code path works for the full query and the episode-free list query
+ * (which omits the heavy `episodes` JSON to keep the grid payload small).
+ */
+export type TvSeasonRow = {
+  id: number;
+  movieId: number;
+  seasonNumber: number;
+  episodeCount: number | null;
+  watchedEpisodes: number;
+  airDate: string | null;
+  overview: string | null;
+  episodes?: string | null;
+};
+
+export function deserializeMovie(
+  raw: PrismaMovie & { tvSeasons?: TvSeasonRow[] },
+  opts?: { includeEpisodes?: boolean }
+): Movie {
+  const includeEpisodes = opts?.includeEpisodes ?? true;
   return {
     id: raw.id,
     tmdbId: raw.tmdbId,
@@ -29,11 +49,13 @@ export function deserializeMovie(raw: PrismaMovie & { tvSeasons?: unknown[] }): 
     validated: raw.validated,
     createdAt: raw.createdAt.toISOString(),
     updatedAt: raw.updatedAt.toISOString(),
-    tvSeasons: raw.tvSeasons ? (raw.tvSeasons as PrismaTvSeason[]).map(deserializeTvSeason) : undefined,
+    tvSeasons: raw.tvSeasons
+      ? raw.tvSeasons.map((s) => deserializeTvSeason(s, includeEpisodes))
+      : undefined,
   };
 }
 
-export function deserializeTvSeason(raw: PrismaTvSeason): TvSeason {
+export function deserializeTvSeason(raw: TvSeasonRow, includeEpisodes = true): TvSeason {
   return {
     id: raw.id,
     movieId: raw.movieId,
@@ -42,7 +64,8 @@ export function deserializeTvSeason(raw: PrismaTvSeason): TvSeason {
     watchedEpisodes: raw.watchedEpisodes,
     airDate: raw.airDate,
     overview: raw.overview,
-    episodes: raw.episodes ? safeParseJson<TvEpisode[]>(raw.episodes, []) : null,
+    episodes:
+      includeEpisodes && raw.episodes ? safeParseJson<TvEpisode[]>(raw.episodes, []) : null,
   };
 }
 
