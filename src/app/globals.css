@@ -158,3 +158,25 @@
   background: oklch(0.28 0 0);
   border-radius: 2px;
 }
+
+/* Shimmer placeholder — a moving gradient sweep for loading images/skeletons */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer {
+  background-color: oklch(0.14 0 0);
+  background-image: linear-gradient(
+    100deg,
+    oklch(0.14 0 0) 30%,
+    oklch(0.22 0 0) 50%,
+    oklch(0.14 0 0) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}

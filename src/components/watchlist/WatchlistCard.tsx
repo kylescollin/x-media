@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { tmdbImage } from "@/lib/tmdb";
+import PosterImage from "@/components/shared/PosterImage";
 import { tvWatchedPercent } from "@/lib/utils/tvProgress";
 import MediaProgressBar from "@/components/detail/MediaProgressBar";
 import type { WatchlistItem } from "@/types";
@@ -31,12 +31,10 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
         hover:scale-[1.04] hover:z-10"
       aria-label={`View details for ${item.title}`}
     >
-      <Image
+      <PosterImage
         src={tmdbImage(item.posterPath, "w500")}
         alt={item.title}
-        fill
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-        className="object-cover"
         priority={priority}
         draggable={false}
       />

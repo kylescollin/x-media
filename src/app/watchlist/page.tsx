@@ -58,7 +58,7 @@ export default function WatchlistPage() {
       {isLoading && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="aspect-[2/3] rounded-lg bg-white/4 animate-pulse" />
+            <div key={i} className="aspect-[2/3] rounded-lg shimmer" />
           ))}
         </div>
       )}

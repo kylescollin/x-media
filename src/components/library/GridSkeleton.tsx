@@ -9,7 +9,7 @@ export default function GridSkeleton({ count = 24 }: { count?: number }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Filter bar placeholder */}
-      <div className="h-9 w-full max-w-sm rounded-md bg-[oklch(0.12_0_0)] animate-pulse" />
+      <div className="h-9 w-full max-w-sm rounded-md shimmer" />
 
       {/* Poster grid placeholder — matches the real grid container exactly */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">

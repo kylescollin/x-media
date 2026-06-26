@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Star } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
+import PosterImage from "@/components/shared/PosterImage";
 import { useUpdateMovie } from "@/hooks/useMovies";
 import { cn } from "@/lib/utils";
 import type { Movie } from "@/types";
@@ -35,12 +35,10 @@ export default function MovieCard({ movie, onSelect, priority = false }: MovieCa
       aria-label={`View details for ${movie.title}`}
     >
       {/* Poster image — w500 for Retina crispness */}
-      <Image
+      <PosterImage
         src={tmdbImage(movie.posterPath, "w500")}
         alt={movie.title}
-        fill
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-        className="object-cover"
         priority={priority}
         draggable={false}
       />

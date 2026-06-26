@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Star } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
+import PosterImage from "@/components/shared/PosterImage";
 import { useUpdateMovie } from "@/hooks/useMovies";
 import { cn } from "@/lib/utils";
 import { tvWatchedPercent } from "@/lib/utils/tvProgress";
@@ -38,12 +38,10 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
         hover:scale-[1.04] hover:z-10"
       aria-label={`View details for ${show.title}`}
     >
-      <Image
+      <PosterImage
         src={tmdbImage(show.posterPath, "w500")}
         alt={show.title}
-        fill
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-        className="object-cover"
         priority={priority}
         draggable={false}
       />
