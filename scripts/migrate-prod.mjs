@@ -56,8 +56,12 @@ for (const folder of folders) {
     try {
       await client.execute(stmt);
     } catch (err) {
-      // Ignore "already exists" / "no such table" errors from idempotent DDL
-      if (!err.message.includes("already exists") && !err.message.includes("no such table")) {
+      // Ignore errors from DDL that was already applied to the DB but not yet
+      // recorded in _prisma_migrations: re-created tables/indexes ("already
+      // exists"), re-added columns ("duplicate column name"), or drops against
+      // missing objects ("no such table"). Anything else is a real failure.
+      const benign = ["already exists", "duplicate column name", "no such table"];
+      if (!benign.some((s) => err.message.includes(s))) {
         throw err;
       }
     }
