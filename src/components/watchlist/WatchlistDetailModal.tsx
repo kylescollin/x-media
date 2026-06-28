@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { X, Trash2 } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { tmdbImage } from "@/lib/tmdb";
+import { cn } from "@/lib/utils";
+import PosterImage from "@/components/shared/PosterImage";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CastList from "@/components/detail/CastList";
@@ -41,21 +42,19 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
       {/* Backdrop */}
       <div className="relative h-52 sm:h-96 w-full overflow-hidden bg-[oklch(0.09_0_0)] shrink-0">
         {item.backdropPath ? (
-          <Image
+          <PosterImage
             src={tmdbImage(item.backdropPath, "original")}
             alt=""
-            fill
             sizes="(max-width: 768px) 100vw, 1024px"
-            className="object-cover object-top"
+            className="object-top"
             priority
           />
         ) : item.posterPath ? (
-          <Image
+          <PosterImage
             src={tmdbImage(item.posterPath, "w500")}
             alt=""
-            fill
             sizes="768px"
-            className="object-cover object-top blur-sm scale-110"
+            className="object-top blur-sm scale-110"
             priority
           />
         ) : null}
@@ -75,12 +74,10 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
       {/* Poster + title row */}
       <div className="flex gap-4 px-5 sm:px-6 -mt-14 sm:-mt-20 relative z-10">
         <div className="relative shrink-0 h-28 w-[76px] sm:h-52 sm:w-[138px] rounded-lg overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10 bg-[oklch(0.09_0_0)]">
-          <Image
+          <PosterImage
             src={tmdbImage(item.posterPath, "w342")}
             alt={item.title}
-            fill
             sizes="138px"
-            className="object-cover"
           />
         </div>
 
@@ -109,21 +106,23 @@ function WatchlistDetailContent({ item, linkedMovie, onClose }: { item: Watchlis
             <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-white/5">
               <button
                 onClick={() => updateLabel({ id: item.id, viewerLabel: "mine" })}
-                className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+                className={cn(
+                  "text-sm font-medium px-3 py-1 rounded-md transition-colors",
                   item.viewerLabel === "mine"
                     ? "bg-white/15 text-white"
                     : "text-white/40 hover:text-white/60"
-                }`}
+                )}
               >
                 Mine
               </button>
               <button
                 onClick={() => updateLabel({ id: item.id, viewerLabel: "ours" })}
-                className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+                className={cn(
+                  "text-sm font-medium px-3 py-1 rounded-md transition-colors",
                   item.viewerLabel === "ours"
                     ? "bg-white/15 text-white"
                     : "text-white/40 hover:text-white/60"
-                }`}
+                )}
               >
                 Ours
               </button>

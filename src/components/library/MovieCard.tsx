@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Star } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
 import PosterImage from "@/components/shared/PosterImage";
@@ -13,7 +14,10 @@ interface MovieCardProps {
   priority?: boolean;
 }
 
-export default function MovieCard({ movie, onSelect, priority = false }: MovieCardProps) {
+// Memoized: rendered in large grids where the parent re-renders on every
+// search keystroke / filter toggle. `onSelect` is a stable setState setter,
+// so the default shallow prop comparison is enough.
+function MovieCard({ movie, onSelect, priority = false }: MovieCardProps) {
   const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null;
   const { mutate: updateMovie } = useUpdateMovie();
 
@@ -51,7 +55,8 @@ export default function MovieCard({ movie, onSelect, priority = false }: MovieCa
         opacity-0 group-hover:opacity-100
         transition-opacity duration-300 ease-out" />
 
-      {/* Title + year — slides up on hover */}
+      {/* Title + year — hidden off-screen by default, slides up (translate-y-1→0)
+          and fades in (opacity-0→100) together with the gradient on group hover. */}
       <div className="absolute inset-x-0 bottom-0 p-3
         translate-y-1 group-hover:translate-y-0
         opacity-0 group-hover:opacity-100
@@ -91,3 +96,5 @@ export default function MovieCard({ movie, onSelect, priority = false }: MovieCa
     </div>
   );
 }
+
+export default memo(MovieCard);

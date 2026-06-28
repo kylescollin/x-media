@@ -113,7 +113,9 @@ export function useTmdbSearch(query: string, type: "movie" | "tv" | "both" = "bo
           setTvPage(nextTvPage);
           newItems.push(...(tvData.results ?? []).map((r: TmdbSearchResult) => ({ ...r, media_type: "tv" })));
         }
-        setResults((prev) => [...prev, ...newItems].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)));
+        // Append only — re-sorting the whole list here would reorder results the
+        // user is already looking at. Popularity sort applies to the first page only.
+        setResults((prev) => [...prev, ...newItems]);
       } else {
         const currentPage = type === "movie" ? moviePage : tvPage;
         const totalPages = type === "movie" ? movieTotalPages : tvTotalPages;

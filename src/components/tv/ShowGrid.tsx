@@ -1,94 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { useMovies } from "@/hooks/useMovies";
+import { useMediaGrid } from "@/hooks/useMediaGrid";
 import ShowCard from "./ShowCard";
 import MovieCardSkeleton from "@/components/library/MovieCardSkeleton";
-import MovieFilters, { type SortOption } from "@/components/library/MovieFilters";
+import MovieFilters from "@/components/library/MovieFilters";
 import MovieDetailModal from "@/components/library/MovieDetailModal";
-import type { Movie } from "@/types";
 
 export default function ShowGrid() {
   const { data: allMovies, isLoading } = useMovies();
-
-  // Filter to TV shows only
-  const shows = useMemo(() => allMovies?.filter((m) => m.mediaType === "tv") ?? [], [allMovies]);
-
-  const [search, setSearch] = useState("");
-  const [filterGenres, setFilterGenres] = useState<string[]>([]);
-  const [filterFavorites, setFilterFavorites] = useState(false);
-  const [filterValidated, setFilterValidated] = useState<boolean | null>(null);
-  const [filterMyRating, setFilterMyRating] = useState<number | "unrated" | null>(null);
-  const [filterMinScore, setFilterMinScore] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("title");
-
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const selectedShow = useMemo(
-    () => shows.find((s) => s.id === selectedId) ?? null,
-    [shows, selectedId]
-  );
-
-  const allGenres = useMemo(() => {
-    const set = new Set<string>();
-    for (const s of shows) for (const g of s.genres) set.add(g.name);
-    return Array.from(set).sort();
-  }, [shows]);
-
-  const filtered = useMemo(() => {
-    let list: Movie[] = [...shows];
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((s) => s.title.toLowerCase().includes(q));
-    }
-    if (filterGenres.length > 0) {
-      list = list.filter((s) =>
-        filterGenres.every((fg) => s.genres.some((g) => g.name === fg))
-      );
-    }
-    if (filterFavorites) {
-      list = list.filter((s) => s.isFavorite);
-    }
-    if (filterValidated !== null) {
-      list = list.filter((s) => s.validated === filterValidated);
-    }
-    if (filterMyRating === "unrated") {
-      list = list.filter((s) => s.userRating === null);
-    } else if (filterMyRating !== null) {
-      list = list.filter((s) => s.userRating === filterMyRating);
-    }
-    if (filterMinScore !== null) {
-      list = list.filter((s) => (s.voteAverage ?? 0) >= filterMinScore);
-    }
-    list.sort((a, b) => {
-      if (sortBy === "title") return a.title.localeCompare(b.title);
-      if (sortBy === "rating") return (b.userRating ?? 0) - (a.userRating ?? 0);
-      if (sortBy === "year") return (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "");
-      return 0;
-    });
-    return list;
-  }, [shows, search, filterGenres, filterFavorites, filterValidated, filterMyRating, filterMinScore, sortBy]);
+  const { items: shows, filtered, filterProps, setSelectedId, selected } = useMediaGrid(allMovies, "tv");
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        <MovieFilters
-          search={search}
-          onSearchChange={setSearch}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          yearSortLabel="First Air Year"
-          favoritesOnly={filterFavorites}
-          onFavoritesChange={setFilterFavorites}
-          filterValidated={filterValidated}
-          onValidatedChange={setFilterValidated}
-          filterMyRating={filterMyRating}
-          onMyRatingChange={setFilterMyRating}
-          filterMinScore={filterMinScore}
-          onMinScoreChange={setFilterMinScore}
-          genres={allGenres}
-          selectedGenres={filterGenres}
-          onGenresChange={setFilterGenres}
-        />
+        <MovieFilters {...filterProps} yearSortLabel="First Air Year" />
 
         {isLoading && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-4 gap-y-6">
@@ -133,7 +59,7 @@ export default function ShowGrid() {
         )}
       </div>
 
-      <MovieDetailModal movie={selectedShow} onClose={() => setSelectedId(null)} />
+      <MovieDetailModal movie={selected} onClose={() => setSelectedId(null)} />
     </>
   );
 }

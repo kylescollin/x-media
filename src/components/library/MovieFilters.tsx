@@ -24,7 +24,7 @@ const fieldBase =
 const fieldIdle = "border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/20";
 const fieldActive = "border-amber-400/60 bg-amber-400/10 text-amber-400";
 
-interface MovieFiltersProps {
+export interface MovieFiltersProps {
   search: string;
   onSearchChange: (v: string) => void;
   sortBy: SortOption;

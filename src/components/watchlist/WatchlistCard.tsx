@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { tmdbImage } from "@/lib/tmdb";
 import PosterImage from "@/components/shared/PosterImage";
 import { tvWatchedPercent } from "@/lib/utils/tvProgress";
@@ -12,7 +13,8 @@ interface WatchlistCardProps {
   priority?: boolean;
 }
 
-export default function WatchlistCard({ item, onSelect, priority = false }: WatchlistCardProps) {
+// Memoized — see MovieCard for rationale (large grid, stable onSelect).
+function WatchlistCard({ item, onSelect, priority = false }: WatchlistCardProps) {
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
 
   const tvPct =
@@ -63,3 +65,5 @@ export default function WatchlistCard({ item, onSelect, priority = false }: Watc
     </div>
   );
 }
+
+export default memo(WatchlistCard);

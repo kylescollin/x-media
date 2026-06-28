@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Star } from "lucide-react";
 import { tmdbImage } from "@/lib/tmdb";
 import PosterImage from "@/components/shared/PosterImage";
@@ -15,7 +16,8 @@ interface ShowCardProps {
   priority?: boolean;
 }
 
-export default function ShowCard({ show, onSelect, priority = false }: ShowCardProps) {
+// Memoized — see MovieCard for rationale (large grid, stable onSelect).
+function ShowCard({ show, onSelect, priority = false }: ShowCardProps) {
   const year = show.releaseDate ? new Date(show.releaseDate).getFullYear() : null;
   const { mutate: updateMovie } = useUpdateMovie();
 
@@ -92,3 +94,5 @@ export default function ShowCard({ show, onSelect, priority = false }: ShowCardP
     </div>
   );
 }
+
+export default memo(ShowCard);
