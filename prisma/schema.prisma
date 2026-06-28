@@ -31,6 +31,9 @@ model Movie {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   tvSeasons    TvSeason[]
+
+  @@index([createdAt]) // grid list queries order by createdAt desc
+  @@index([mediaType]) // library/watchlist filter by movie | tv
 }
 
 model TvSeason {
@@ -65,4 +68,6 @@ model WatchlistItem {
   priority      Int      @default(0)
   addedAt       DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([priority, addedAt]) // list query orders by priority desc, addedAt desc
 }

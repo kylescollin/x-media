@@ -19,18 +19,19 @@ export async function getWatchlistItems(): Promise<WatchlistItem[]> {
   if (linkedMovies.length === 0) return items;
 
   // Backfill numberOfSeasons from TMDB for any linked show that's missing it.
-  // Writes happen in the background; the fetched values are used immediately.
-  const missingCount = linkedMovies.filter((m) => m.numberOfSeasons == null);
-  const backfilled = new Map<number, number>(); // tmdbId -> numberOfSeasons
-  if (missingCount.length > 0) {
-    await Promise.all(
-      missingCount.map(async (m) => {
+  // Fire-and-forget: never blocks the response (previously an `await Promise.all`
+  // of live TMDB calls added seconds to every watchlist load). New shows already
+  // get this set at import time, so this only ever touches legacy rows — whose
+  // value lands on the next load.
+  const missing = linkedMovies.filter((m) => m.numberOfSeasons == null);
+  if (missing.length > 0) {
+    void Promise.allSettled(
+      missing.map(async (m) => {
         try {
           const details = await getTmdbDetails(m.tmdbId, "tv");
           const n = details.number_of_seasons as number | undefined;
           if (n != null) {
-            backfilled.set(m.tmdbId, n);
-            prisma.movie.update({ where: { id: m.id }, data: { numberOfSeasons: n } }).catch(() => {});
+            await prisma.movie.update({ where: { id: m.id }, data: { numberOfSeasons: n } });
           }
         } catch { /* ignore transient TMDB errors */ }
       })
@@ -42,11 +43,10 @@ export async function getWatchlistItems(): Promise<WatchlistItem[]> {
   return items.map((item) => {
     const linked = movieByTmdbId.get(item.tmdbId);
     if (!linked) return item;
-    const numberOfSeasons = linked.numberOfSeasons ?? backfilled.get(item.tmdbId) ?? undefined;
     return {
       ...item,
       linkedMovieId: linked.id,
-      numberOfSeasons,
+      numberOfSeasons: linked.numberOfSeasons ?? undefined,
       tvSeasons: linked.tvSeasons.map((s) => deserializeTvSeason(s)),
     };
   });
