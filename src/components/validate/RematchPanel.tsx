@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { Search, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTmdbSearch } from "@/hooks/useTmdbSearch";
+import SearchResultsList from "@/components/shared/SearchResultsList";
 import { tmdbImage } from "@/lib/tmdb";
-import type { Movie, TmdbSearchResult } from "@/types";
+import type { MediaType, Movie, TmdbSearchResult } from "@/types";
 
 interface RematchPanelProps {
   movie: Movie;
@@ -16,17 +16,18 @@ interface RematchPanelProps {
   onRematched: () => void;
 }
 
+const TYPE_OPTIONS: { value: MediaType | "both"; label: string }[] = [
+  { value: "movie", label: "Movies" },
+  { value: "tv", label: "TV" },
+  { value: "both", label: "Both" },
+];
+
 export default function RematchPanel({ movie, open, onClose, onRematched }: RematchPanelProps) {
-  const [query, setQuery] = useState(movie.title);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingResult, setPendingResult] = useState<TmdbSearchResult | null>(null);
-  const [displayCount, setDisplayCount] = useState(10);
-  const { results, isLoading, isLoadingMore, hasMore, loadMore } = useTmdbSearch(query, "both");
-  const visibleResults = results.slice(0, displayCount);
+  const [searchType, setSearchType] = useState<MediaType | "both">(movie.mediaType);
   const queryClient = useQueryClient();
-
-  useEffect(() => { setDisplayCount(10); }, [query]);
 
   async function handleConfirm() {
     if (!pendingResult) return;
@@ -153,87 +154,46 @@ export default function RematchPanel({ movie, open, onClose, onRematched }: Rema
             /* Search view */
             <>
               {/* Header */}
-              <div className="px-5 pt-5 pb-4 border-b border-white/6 shrink-0">
+              <div className="px-5 pt-5 pb-3 border-b border-white/6 shrink-0">
                 <Dialog.Title className="text-base font-semibold text-white">
                   Wrong match — find the right one
                 </Dialog.Title>
                 <Dialog.Description className="mt-0.5 text-xs text-white/45">
                   Original title: <span className="text-white/65">{movie.title}</span>
                 </Dialog.Description>
-
-                {/* Search input */}
-                <div className="relative mt-3">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/35 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search TMDB…"
-                    className="w-full bg-white/6 border border-white/10 rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
-                  />
-                  {isLoading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 animate-spin" />
-                  )}
-                </div>
               </div>
 
-              {/* Results */}
-              <div
-                className="overflow-y-auto flex-1 py-2"
-                onScroll={(e) => {
-                  const el = e.currentTarget;
-                  if (el.scrollHeight - el.scrollTop - el.clientHeight > 80) return;
-                  if (displayCount < results.length) {
-                    setDisplayCount((c) => c + 10);
-                  } else if (hasMore && !isLoadingMore) {
-                    loadMore();
-                  }
-                }}
-              >
-                {error && (
-                  <p className="mx-5 mt-3 mb-1 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
-                    {error}
-                  </p>
-                )}
-                {results.length === 0 && !isLoading && query.trim().length >= 2 && (
-                  <p className="px-5 py-6 text-sm text-white/35 text-center">No results found.</p>
-                )}
-                {visibleResults.map((r) => (
-                  <button
-                    key={`${r.id}-${r.media_type}`}
-                    onClick={() => setPendingResult(r)}
-                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors text-left"
-                  >
-                    <div className="relative h-16 w-11 shrink-0 rounded overflow-hidden bg-white/5">
-                      <Image
-                        src={tmdbImage(r.poster_path, "w154")}
-                        alt={displayTitle(r)}
-                        fill
-                        sizes="44px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-white/90 truncate">{displayTitle(r)}</p>
-                      <p className="text-xs text-white/40 mt-0.5">
-                        {displayYear(r)}
-                        {r.media_type && (
-                          <span className="ml-1.5 capitalize text-white/30">{r.media_type}</span>
-                        )}
-                        {r.vote_average > 0 && (
-                          <span className="ml-1.5 text-amber-400/70">★ {r.vote_average.toFixed(1)}</span>
-                        )}
-                      </p>
-                      {r.overview && (
-                        <p className="text-xs text-white/30 mt-1 line-clamp-2 leading-relaxed">{r.overview}</p>
-                      )}
-                    </div>
-                  </button>
-                ))}
-                {isLoadingMore && (
-                  <p className="px-5 py-3 text-xs text-white/35 text-center">Loading more…</p>
-                )}
-              </div>
+              {error && (
+                <p className="mx-5 mt-3 -mb-1 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+                  {error}
+                </p>
+              )}
+
+              {/* Search + results (shared with the Add dialog) */}
+              <SearchResultsList
+                searchType={searchType}
+                searchPlaceholder="Search TMDB…"
+                autoFocus
+                onSelect={setPendingResult}
+                filters={
+                  <div className="flex items-center gap-1.5">
+                    {TYPE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setSearchType(opt.value)}
+                        className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                          searchType === opt.value
+                            ? "bg-white/15 border-white/25 text-white"
+                            : "border-white/10 text-white/40 hover:text-white/60 hover:border-white/20"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                }
+              />
 
               {/* Footer */}
               <div className="px-5 py-4 border-t border-white/6 shrink-0">
