@@ -49,6 +49,7 @@ export interface TvEpisode {
   name: string;
   airDate: string | null;
   watched: boolean;
+  watchedDate?: string | null;   // ISO string, set when checked off
   stillPath?: string | null;
 }
 

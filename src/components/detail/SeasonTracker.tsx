@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, CheckCircle2, Loader2 } from "lucide-react";
 import { useUpdateSeasonEpisodes } from "@/hooks/useSeasons";
+import { setEpisodeWatched } from "@/lib/utils/episodes";
 import { cn } from "@/lib/utils";
 import type { TvSeason, TvEpisode } from "@/types";
 
@@ -124,14 +125,14 @@ export default function SeasonTracker({ movieId, tmdbId, seasons }: SeasonTracke
     if (s.inLibrary) {
       if (!s.data.episodes) return;
       const updated = s.data.episodes.map((ep) =>
-        ep.number === episode.number ? { ...ep, watched: !ep.watched } : ep
+        ep.number === episode.number ? setEpisodeWatched(ep, !ep.watched) : ep
       );
       updateEpisodes({ seasonNumber: s.data.seasonNumber, episodes: updated });
     } else {
       const vd = virtualData[s.seasonNumber];
       if (!vd?.episodes) return;
       const updated = vd.episodes.map((ep) =>
-        ep.number === episode.number ? { ...ep, watched: !ep.watched } : ep
+        ep.number === episode.number ? setEpisodeWatched(ep, !ep.watched) : ep
       );
       setVirtualData((prev) => ({ ...prev, [s.seasonNumber]: { ...vd, episodes: updated } }));
       updateEpisodes({
@@ -147,12 +148,12 @@ export default function SeasonTracker({ movieId, tmdbId, seasons }: SeasonTracke
   function markAllWatched(s: DisplaySeason, watched: boolean) {
     if (s.inLibrary) {
       if (!s.data.episodes) return;
-      const updated = s.data.episodes.map((ep) => ({ ...ep, watched }));
+      const updated = s.data.episodes.map((ep) => setEpisodeWatched(ep, watched));
       updateEpisodes({ seasonNumber: s.data.seasonNumber, episodes: updated });
     } else {
       const vd = virtualData[s.seasonNumber];
       if (!vd?.episodes) return;
-      const updated = vd.episodes.map((ep) => ({ ...ep, watched }));
+      const updated = vd.episodes.map((ep) => setEpisodeWatched(ep, watched));
       setVirtualData((prev) => ({ ...prev, [s.seasonNumber]: { ...vd, episodes: updated } }));
       updateEpisodes({
         seasonNumber: s.seasonNumber,
@@ -278,6 +279,11 @@ export default function SeasonTracker({ movieId, tmdbId, seasons }: SeasonTracke
                         <span className={cn("text-xs leading-snug", ep.watched ? "text-white/70" : "text-white/45")}>
                           {ep.name}
                         </span>
+                        {ep.watched && ep.watchedDate && (
+                          <span className="ml-auto text-[10px] text-white/25 shrink-0">
+                            {new Date(ep.watchedDate).toLocaleDateString()}
+                          </span>
+                        )}
                       </label>
                     ))}
                   </div>

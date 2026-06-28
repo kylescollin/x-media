@@ -28,7 +28,11 @@ export async function POST(request: NextRequest) {
 
     const details = await getTmdbDetails(Number(tmdbId), type);
     const data = extractMovieData(details, type);
-    const movie = await upsertMovie({ ...data, isFavorite });
+    const movie = await upsertMovie({
+      ...data,
+      isFavorite,
+      watchedDate: type === "movie" ? new Date() : null,
+    });
 
     return NextResponse.json(movie, { status: 201 });
   } catch (err) {
