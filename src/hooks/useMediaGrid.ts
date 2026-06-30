@@ -13,7 +13,11 @@ import type { Movie } from "@/types";
  * `filterProps` is ready to spread straight into <MovieFilters {...filterProps} />
  * (the per-page `yearSortLabel` is the only prop left to the caller).
  */
-export function useMediaGrid(all: Movie[] | undefined, mediaType: "movie" | "tv") {
+export function useMediaGrid(
+  all: Movie[] | undefined,
+  mediaType: "movie" | "tv",
+  defaultSort: SortOption = "title",
+) {
   // Filter + sort state
   const [search, setSearch] = useState("");
   const [filterGenres, setFilterGenres] = useState<string[]>([]);
@@ -21,7 +25,7 @@ export function useMediaGrid(all: Movie[] | undefined, mediaType: "movie" | "tv"
   const [filterValidated, setFilterValidated] = useState<boolean | null>(null);
   const [filterMyRating, setFilterMyRating] = useState<number | "unrated" | null>(null);
   const [filterMinScore, setFilterMinScore] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("title"); // A–Z default
+  const [sortBy, setSortBy] = useState<SortOption>(defaultSort);
 
   // Modal selection — no page navigation
   const [selectedId, setSelectedId] = useState<number | null>(null);

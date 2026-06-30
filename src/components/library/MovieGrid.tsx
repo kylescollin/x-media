@@ -9,7 +9,7 @@ import MovieDetailModal from "./MovieDetailModal";
 
 export default function MovieGrid() {
   const { data: movies, isLoading } = useMovies();
-  const { items, filtered, filterProps, setSelectedId, selected } = useMediaGrid(movies, "movie");
+  const { items, filtered, filterProps, setSelectedId, selected } = useMediaGrid(movies, "movie", "added");
 
   return (
     <>
